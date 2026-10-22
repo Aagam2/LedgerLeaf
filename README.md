@@ -1,6 +1,6 @@
 # Ledgerleaf
 
-> Latest development batch (2026-10-22): use `./release/ledgerleaf-linux-dev --data-dir ./manual-test-data` with fresh test data for the new goods/bank dialogs, named-bank expenses and login/startup fixes. This Linux development build uses Go 1.27.2. Older release binaries are retained pending pinned-toolchain rebuilding. See [implementation status](docs/IMPLEMENTATION_STATUS.md) and [test results](docs/TEST_REPORT.md).
+> Latest development batch (2026-10-22): use `./release/ledgerleaf-linux-dev --data-dir ./manual-test-data` with fresh test data for the new goods/bank dialogs, named-bank expenses and login/startup fixes. The latest local development build uses Go 1.27.3. Older release binaries are retained pending pinned-toolchain rebuilding. See [implementation status](docs/IMPLEMENTATION_STATUS.md) and [test results](docs/TEST_REPORT.md).
 
 
 An original offline desktop business application built with Go, React, TypeScript, Tailwind and embedded SQLite. This is an **incomplete development build**, not the complete production system described in the supplied specification.
@@ -9,25 +9,25 @@ Working features include multiple businesses; products, parties and warehouses; 
 
 The full specification remains incomplete. See [implementation status](docs/IMPLEMENTATION_STATUS.md) for the remaining work and [test results](docs/TEST_REPORT.md) for verification limits.
 
-The latest source additionally includes financial-year/variant settings, recurring expenses, year closing, quantity cess, encrypted backup copies, independent dispatches, journal imports and offline restore assistance. Consolidated Linux verification is recorded in the status and test report above. The verified executable is `release/ledgerleaf-linux`; the root executable and Windows binaries predate these source changes.
+The latest source additionally includes financial-year/variant settings, recurring expenses, year closing, quantity cess, encrypted backup copies, independent dispatches, journal imports and offline restore assistance. Consolidated Linux verification is recorded in the status and test report above. Earlier consolidated verification used `release/ledgerleaf-linux`; the latest source uses the development artifact described above.
 
-For current Linux testing, run the refreshed executable:
+For the latest Linux trial, use the development executable:
 
 ```sh
-./release/ledgerleaf-linux --data-dir ./manual-test-data
+./release/ledgerleaf-linux-dev --data-dir ./manual-test-data
 ```
 
-It opens your browser and keeps test records in a separate installation. No build tools or internet connection are needed to run the standard executable. Keep its terminal open while using the application. Build-from-source instructions are in [building.md](docs/building.md). Existing root and Windows binaries predate the latest source changes.
+It opens your browser and keeps test records in a separate installation. No build tools or internet connection are needed to run it. Keep its terminal open while using the application. The standard/encrypted Linux and Windows artifacts predate the latest changes; pinned release rebuilding remains pending. Build-from-source instructions are in [building.md](docs/building.md).
 
 ## Start testing
 
 Read [Run and test Ledgerleaf yourself](docs/TESTING_GUIDE.md) for exact startup commands, a first transaction walkthrough, test expectations, backup/encryption checks and troubleshooting. [Project file map](docs/FILE_MAP.md) explains each project-owned file and generated artifact group.
 
-Latest additions include atomic sales/purchase file imports, multi-dispatch invoice drafts, GSTR-1/GSTR-3B preparation exports and an optional SQLCipher Linux build. The standard launch command is:
+Latest additions include atomic sales/purchase file imports, multi-dispatch invoice drafts, GSTR-1/GSTR-3B preparation exports and an optional SQLCipher Linux build. The current trial launch command is:
 
 ```bash
 cd /home/aagam-linux/Desktop/Projects/MyBillBook
-./release/ledgerleaf-linux --data-dir ./manual-test-data
+./release/ledgerleaf-linux-dev --data-dir ./manual-test-data
 ```
 
 ## Run
@@ -75,3 +75,7 @@ Tests use disposable SQLite databases, exercise the real executable and browser,
 The application includes offline **Help** with workflow guides in English, Hindi and Gujarati. Choose **Language / भाषा / ભાષા** in the sidebar or login screen; English is the default. Navigation and common labels are localized, with English fallback for remaining messages. [Localization scope](docs/LOCALIZATION.md).
 
 Administrators can download an all-business, all-table Excel workbook from **Backup & restore**. The workbook is an unencrypted inspection export; use SQLite backups for complete restores. **Import & export** provides blank product/customer/supplier Excel templates and validated invoice/journal imports. See [the testing guide](docs/TESTING_GUIDE.md#entire-database-workbook-and-excel-import-templates) for formats and units.
+
+## Source control
+
+The local repository uses `main`. Initial commit `7aa7c24` captures the existing source, documentation, tests, migrations and embedded web assets before further changes. Local executables, release artifacts, installed dependencies, Python caches, database files and `.env` files are excluded.

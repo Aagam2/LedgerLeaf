@@ -210,7 +210,7 @@ Use **Find account** to filter usernames. **Change your password** opens a separ
 
 ## Bank account and statement dialogs
 
-In **Banks & periods**, choose **Add bank account** to enter the code and bank details in a dialog. Saving closes the dialog; rejected entries stay open with their values and error message. In the reconciliation table, choose **Match** beside a ledger entry to enter its statement date/reference. Matching does not create or alter a ledger posting. **Unmatch** clears only the statement association. Period locks and year-end closing keep their existing workflows.
+In **Banks & periods**, choose **Add bank account** to enter the code and bank details in a dialog. Saving closes the dialog; rejected entries stay open with their values and error message. In the reconciliation table, choose **Match** beside a ledger entry to enter its statement date/reference. Matching does not create or alter a ledger posting. **Unmatch** clears only the statement association. Choose **Change period lock** to edit its date in a dialog; Cancel leaves the saved lock unchanged. Choose **Review year closing** to preview a year-end transfer in a dialog before confirming its permanent posting lock.
 
 For the latest 2026-10-22 bank-dialog and login-language changes, the available Linux **development** build is:
 
@@ -229,3 +229,11 @@ Open **Goods receipts → New goods receipt** to receive against an issued purch
 Open **Dispatch challans → New dispatch challan** to choose the customer, warehouse and items. Successful posting returns to the dispatch list. Failed validation keeps the form open. The list scrolls horizontally when needed on small screens; dialogs scroll internally. Closing a changed form with its top-right close control or Escape asks before discarding it. Dispatch allocation/history and consolidation also use dialogs, as described below.
 
 Dispatch **Invoice**, **Return**, **History**, and **Combine selected dispatches** actions now open dialogs. Quantity/date changes stay inside the dialog until submitted. Negative quantities are rejected explicitly; zero leaves an item for later. Top-right close/Escape asks before discarding changed input; the explicit Close action discards it. Tables scroll horizontally inside the dialog on narrow screens. Successful invoice-draft creation or return closes the dialog and refreshes the dispatch list.
+
+### Expense, stock and financial-period dialogs
+
+In **Expenses**, choose **+ Record expense**. In **Stock changes**, choose **+ Post stock movement**. Posting closes the dialog on success; a rejected submission keeps entered values and shows its error inside the form. Stock quantities are positive base-unit quantities; choose the operation to add, remove, record damage or transfer.
+
+In **Banks & periods**, the period summary displays the saved lock. **Change period lock** opens the editable date; Cancel discards it. Blank dates request reopening ordinary locked periods, subject to the server's finalized-year boundary. **Review year closing** opens the year-end date, preview and permanent-close confirmation. Changing the date invalidates its preview. These controls are administrator-only.
+
+Developers can check these dialog interactions without starting the application or opening SQLite: run `npm run build --prefix frontend`, then `npm run test:ui:offline --prefix frontend`. The latter uses an in-memory API stub with blocked browser network requests; it verifies interface behavior rather than real accounting/stock persistence.

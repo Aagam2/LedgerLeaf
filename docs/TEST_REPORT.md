@@ -238,3 +238,19 @@ Evidence: `release/verification-dispatch-dialogs/`.
 Frontend builds and unit checks passed; the Linux development executable was rebuilt. The initial four-test run had three passes and one test expectation failure: the existing shared parser already rejects negative input with “nonnegative number,” rather than the redundant proposed error wording. The redundant validation code was removed and the test expectation corrected. This was not a newly discovered acceptance of negative quantities.
 
 Final four-test run passed (`browser-final.log`): partial dispatch invoice/return/history with rejected negative input creating no draft, multi-dispatch consolidation without duplicate stock issue, Hindi login, and responsive receipt/dispatch dialogs. Desktop consolidation and mobile allocation screenshots were visually reviewed. Wide allocation tables scroll inside their dialog; the dialog itself does not overflow the mobile viewport. No backend/schema change or full backend rerun occurred. Pinned release rebuilds and final platform/accessibility/compliance review remain outstanding.
+
+## 2026-10-22 — Repository baseline and operation/period dialogs
+
+Initial Git commit `7aa7c24` captures all existing source, documentation, tests, migrations and embedded frontend assets before this batch. Generated executables, local databases, installed dependencies and Python caches are excluded. No `.env` file was read.
+
+Changes cover ordinary expense/stock entry dialogs, period-lock editing with saved-state preservation, and a financial-year-closing dialog retaining the existing preview and permanent-close confirmation. Accounting, architecture, database and build documentation were reviewed against source and corrected where stale. No schema/backend change.
+
+Executed checks:
+
+- `npm run build --prefix frontend` — TypeScript and production frontend bundle pass. Vite reports its existing CJS Node API deprecation notice.
+- `npm test --prefix frontend` — both existing numerical/POS payment test files pass.
+- `node frontend/tests/dialogs.offline.mjs` (also available as `npm run test:ui:offline --prefix frontend`) — four browser scenarios pass with the real React components and an in-memory API stub: expense failure/retry preserves values, account choice and idempotency key; mobile stock transfer rejects negative quantities and sends exact base-unit quantities; period-lock Cancel/save and year-close date/preview invalidation/confirmation refresh the displayed summary/history; accountant accounts lack administrator period actions. Chrome required execution outside the restricted process sandbox. Browser contexts are offline and browser network requests are aborted.
+- Offline Go build and `go vet ./...` — pass using installed Go **1.27.3**, `GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off`, and a temporary build cache. Refreshed `release/ledgerleaf-linux-dev` embeds the final frontend bundle. The executable was compiled but not launched.
+- `git diff --check` — passes for this continuation. Existing whitespace in the baseline's license notices/receipt source was retained unchanged.
+
+Verification boundaries: no database connection, application server or external service was opened. No Go test suite, database-backed browser E2E suite, smoke test or manual live accounting workflow ran in this batch. The stubbed browser checks establish interface behavior and request payloads, not financial transaction correctness. Pinned release builds, Windows/runtime, printer, full localization, specialized tax handling and other previously deferred checks remain pending.

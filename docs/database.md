@@ -1,6 +1,6 @@
 # Database
 
-Seven embedded migrations define business/audit records, master data/accounting/stock, immutable-ledger triggers, billing/payments, document reversals, users/actor audit and business profiles. `PRAGMA user_version` is updated in the same transaction as each pending migration batch. Opening a newer schema fails rather than downgrading it.
+Twenty-six embedded migrations define the current schema, from business/audit records and immutable stock/accounting ledgers through tax, receipts, media, expenses, financial-year closing and dispatch allocations. `PRAGMA user_version` is updated in the same transaction as each pending migration batch. Opening a newer schema fails rather than downgrading it.
 
 All connections enable foreign keys, WAL journaling, FULL synchronous writes, a 5-second busy timeout, and immediate write transactions. One connection per process avoids divergent per-connection settings and bounds concurrent writers. Database filenames are URL-escaped. Parameterized SQL is used for input.
 
@@ -35,3 +35,7 @@ Administrator diagnostics use the exclusive API request lock and a bounded conte
 Goods receipts now allow a null order reference. The table is rebuilt transactionally with historical IDs, snapshot bytes, invoice links and immutability triggers preserved. `receipt_matches` records immutable base-unit quantities and receipt-cost allocations per receipt, product and invoice; existing whole-receipt invoice links are backfilled. `receipt_reversals` records immutable dated corrections with reasons. Backups validate both new tables.
 
 Receipt availability is checked inside the invoice transaction. Cumulative receipt-value allocation preserves the exact original cost across successive partial invoices. Invoice finalization writes the matches and financial journal together; quantities are not posted twice. Receipt reversal removes current weighted-average stock cost and clears the original uninvoiced liability, using stock adjustments for any difference. Drafts do not reserve quantities and become invalid if receipts are consumed or reversed.
+
+## Continuation migrations 21–26
+
+Migration 21 adds financial-year start-month settings and structured product variant groups/assignments. Migration 22 adds expense categories, recurring schedules and immutable expense attachments. Migration 23 adds immutable year closings and retained earnings account 3100. Migration 24 adds configured per-unit cess. Migration 25 adds independent dispatch snapshots and goods-dispatched-not-invoiced account 1250. Migration 26 adds immutable per-product dispatch allocations and backfills previous whole-dispatch invoices/returns. Multiple dispatches can contribute quantities to one invoice; finalization rechecks availability and allocates original cost without a second warehouse issue.

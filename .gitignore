@@ -6,3 +6,10 @@ release/*
 *.db-wal
 *.db-shm
 .env*
+
+# Local executables, interpreter caches, and browser-test output
+/ledgerleaf
+__pycache__/
+*.py[cod]
+playwright-report/
+test-results/

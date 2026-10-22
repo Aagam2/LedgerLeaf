@@ -8,6 +8,6 @@ An OS-held file handle enforces a single application instance per data directory
 
 Modules: `database` handles transactional migrations; `server` implements validation and business transactions; `accounting` checks balanced posting; `money` rounds integer rational arithmetic; `printing` renders PDF from stored snapshots; `instance` handles startup locks; `web` embeds static frontend assets.
 
-Closing the browser does not stop the executable. The authenticated Exit command and Ctrl+C trigger a graceful HTTP drain, followed by closing SQLite, log file and instance lock. Logs do not contain launch tokens or business payloads. Log rotation and crash recovery UX remain pending.
+Closing the browser does not stop the executable. The authenticated Exit command and Ctrl+C trigger a graceful HTTP drain, followed by closing SQLite, log file and instance lock. Logs do not contain launch tokens or business payloads. Size-based log rotation is implemented in `internal/logging`. Offline administrator/restore recovery commands and in-app diagnostics are available; automatic startup repair remains pending.
 
-The UI hides unavailable operational modules and explicitly describes the current non-GST limitation. It does not substitute mock dashboard values. Multiple business isolation is enforced by scoped queries and composite foreign keys for related business records.
+The UI filters navigation by role and presents the implemented billing, configured GST, inventory, accounting and reporting workflows. Dashboard figures come from stored transactions. Specialized tax scenarios and full interface localization remain incomplete. Multiple business isolation is enforced by scoped queries and composite foreign keys for related business records.

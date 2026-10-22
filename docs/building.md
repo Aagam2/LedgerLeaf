@@ -26,7 +26,7 @@ Python is only used by the optional development smoke test, never by the distrib
 
 `build-windows.sh` requires ripgrep (`rg`) for import verification. `build-windows.ps1` is provided for Windows hosts with both cross compilers on PATH but has not been executed here. It does not run the Linux-specific browser harness. `verify-build.ps1` checks imports and hashes. Do not mistake dependency inspection for Windows runtime verification.
 
-Artifacts: x86/x64 EXEs, SHA256SUMS, manifest.json, module/build metadata and PE import reports. Frontend and all resources are embedded. `-buildvcs=false` is intentional: this workspace's managed .git directory is not a functioning Git checkout. No existing Git state is changed.
+Artifacts: x86/x64 EXEs, SHA256SUMS, manifest.json, module/build metadata and PE import reports. Frontend and all resources are embedded. The project is version-controlled on `main` as of 2026-10-22. Build scripts retain `-buildvcs=false` so compilation also works from source archives. Generated release executables and local runtime data are excluded from Git; embedded frontend assets are tracked so the Go application can compile from the checkout.
 
 Before release: test clean Windows 7 SP1/8.1 x86/x64 and Windows 10/11 x64 with internet disabled; verify startup, browser opening, CRUD, invoicing, persistence, printing, exit and crash recovery. All such Windows tests are still pending, along with Chrome 109 verification and performance benchmarks.
 
@@ -49,3 +49,9 @@ The regression browser harness accepts an absolute `LEDGERLEAF_TEST_BINARY` over
 ```sh
 LEDGERLEAF_TEST_BINARY="$PWD/release/ledgerleaf-linux-dev" npm run test:e2e --prefix frontend -- --grep 'bank creation and statement|language selection is available'
 ```
+
+### Offline interface checks
+
+After building the frontend, run `npm run test:ui:offline --prefix frontend`. The harness bundles the real expense, stock and bank/period components with an in-memory API stub, then drives installed Chrome (`CHROME_PATH` can override the executable). Browser contexts are offline and all browser network requests are blocked. No application server or database is opened. These checks cover form behavior and request payloads; they do not verify server accounting or database transactions.
+
+The Git/dialog continuation on 2026-10-22 rebuilt `release/ledgerleaf-linux-dev` offline with installed Go **1.27.3**, superseding the development-artifact version recorded earlier on this page. Compilation and vet pass; the executable was not launched under the current no-database/no-service restriction. Pinned Go 1.20.14 release builds remain pending.

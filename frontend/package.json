@@ -5,7 +5,8 @@
   "scripts": {
     "build": "tsc --noEmit && vite build",
     "test": "node --test tests/*.test.mjs",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:ui:offline": "node tests/dialogs.offline.mjs"
   },
   "dependencies": {
     "react": "18.3.1",

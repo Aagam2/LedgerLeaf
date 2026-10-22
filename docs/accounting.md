@@ -1,22 +1,29 @@
 # Accounting implemented so far
 
-All postings use integer paise and must balance before insertion. They are committed atomically with the originating stock/document/payment operation. No approximate financial totals are used.
+All postings use integer paise and must balance before insertion. They are committed atomically with the originating stock/document/payment operation. No approximate financial totals are used. This describes implemented behavior; specialized tax and correction workflows remain incomplete.
 
 | Transaction | Debit | Credit |
-|---|---|---|
-| Opening stock | Inventory | Opening equity |
-| Purchase finalization | Inventory | Accounts payable |
-| Sale finalization | Accounts receivable | Sales revenue |
-| Sale stock cost | Cost of goods sold | Inventory |
-| Customer payment | Cash or bank | Accounts receivable |
-| Supplier payment | Accounts payable | Cash or bank |
+| --- | --- | --- |
+| Opening stock | Inventory (1200) | Opening equity (3000) |
+| Ordinary purchase finalization | Inventory and eligible input tax | Accounts payable (2000) and applicable reverse-charge liabilities |
+| Sale finalization | Accounts receivable (1100) | Sales revenue (4000) and applicable output tax |
+| Sale stock cost | Cost of goods sold (5000) | Inventory (1200) |
+| Customer payment | Cash or selected bank | Accounts receivable (1100) |
+| Supplier payment | Accounts payable (2000) | Cash or selected bank |
+| Goods receipt before invoice | Inventory (1200) | Goods received, invoice pending (2050) |
+| Dispatch before invoice | Goods dispatched, invoice pending (1250) | Inventory (1200) |
+| Paid expense | Expenses (5200) | Cash or selected bank |
 
-Inventory uses moving weighted-average cost within each product/warehouse. For a sale, allocated cost is the rounded ratio of remaining inventory value to remaining quantity, multiplied by quantity sold. Selling all remaining quantity consumes all remaining value. Equal-date transactions use posting order. Backdated stock postings are rejected. Service sales do not move inventory or post cost of goods sold; service purchases are unavailable.
+Inventory uses moving weighted-average cost within each product/warehouse. For a sale, allocated cost is the rounded ratio of remaining inventory value to remaining quantity, multiplied by quantity sold. Selling all remaining quantity consumes all remaining value. Equal-date transactions use posting order. Backdated stock postings are rejected. Service sales do not move inventory or post cost of goods sold; service purchases are unavailable. Alternate-unit quantities convert to base-unit thousandths before stock posting.
 
-Manual CASH payments use the cash account; UPI, BANK_TRANSFER, CHEQUE, CARD and OTHER use the bank account. No funds are moved electronically. There is currently one cash and one bank control account per business, not configurable multiple accounts. A payment allocates directly to one finalized document; amounts greater than outstanding are rejected. Repeating the same request is safe; using the key with changed content fails.
+CASH payments use cash account 1000. Other supported payment modes use the default bank 1010 or a configured bank account in the same business. Additional banks have their own asset ledger accounts and manual statement reconciliation. Ordinary and recurring expenses also accept these named banks. Payments allocate to finalized invoices; overpayment is rejected. Idempotency keys prevent duplicate postings and reject changed content under the same key.
 
-Full sales returns reverse receivable/revenue and restore original quantity/cost, reversing COGS. Purchase returns remove stock at current weighted-average value, with any original-cost difference in stock adjustment account 5100. Paid amounts are recorded as refunded via cash/bank. Partial returns are not implemented.
+Full returns/cancellations and partial credit notes append corrections while preserving original invoice snapshots. Sale returns restore original quantity and cost; purchase returns remove current weighted-average stock value and post any cost difference to stock adjustment account 5100. Refund limits and cumulative rounding prevent over-refunding or losing residual paise. Invoice-level discounts/charges allocate across lines; payable rounding uses account 5300.
 
-Stock additions debit inventory and credit stock adjustment (5100); removals/damage reverse those accounts. Transfers preserve total inventory value. Paid expenses debit 5200 and credit cash/bank. Manual journals require balanced positive lines and allow cash/bank/equity/expense plus custom accounts; subledger control accounts are excluded. Manual and expense reversals append opposite lines once.
+Goods-receipt invoice matching clears the uninvoiced liability without receiving stock twice. Partial and consolidated matching retain immutable quantities/cost allocations. Dispatch invoicing recognizes revenue/tax and transfers the allocated dispatch value to cost of goods sold without issuing warehouse stock again. Uninvoiced dispatch quantities can return to the warehouse; invoiced quantities use invoice returns.
 
-Date-filtered reports derive from journal lines. Profit/loss uses the selected interval; balance sheet includes all postings through its cutoff and accumulated earnings. CSV exports contain integer paise and thousandths for exact interchange. Party opening balances, ageing, financial-year closing, recurring expenses, advances and reconciliation remain pending.
+Stock additions debit inventory and credit stock adjustment (5100); removals/damage reverse those accounts. Transfers preserve total inventory value. Manual journals require balanced positive lines and exclude protected inventory/receivable/payable control accounts. Manual and expense reversals append opposite lines once. Expense categories and attachments are stored with the posting; recurring schedules require confirmation of each paid occurrence.
+
+Party opening balances, opening-balance settlement, advances, invoice allocation and unused-advance refunds use dedicated party-finance workflows. Recording an advance does not implement specialized GST-on-advance handling.
+
+Date-filtered reports derive from journal lines. Profit/loss uses the selected interval and excludes year-closing journals; the balance sheet includes postings through its cutoff and accumulated earnings. Financial-year closing previews and then recalculates income/expense balances, transfers them to retained earnings (3100), and permanently locks postings through the closing date. Administrators can set ordinary period locks but cannot reopen a finalized year closing. CSV monetary values use integer paise; quantities use integer thousandths for exact interchange.

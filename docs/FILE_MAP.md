@@ -1,6 +1,6 @@
 # Project file map
 
-Updated 2026-10-19. Start with [TESTING_GUIDE.md](TESTING_GUIDE.md) to run and test the application. This inventory describes project-owned source, tests, configuration, documentation and assets; installed dependencies and generated build files are grouped separately below. `.env` files are neither required nor read for this guide.
+Updated 2026-10-22. Start with [TESTING_GUIDE.md](TESTING_GUIDE.md) to run and test the application. This inventory describes project-owned source, tests, configuration, documentation and assets; installed dependencies and generated build files are grouped separately below. `.env` files are neither required nor read for this guide.
 
 ## How the pieces connect
 
@@ -15,7 +15,7 @@ Updated 2026-10-19. Start with [TESTING_GUIDE.md](TESTING_GUIDE.md) to run and t
 | [cmd/billbook/main.go](../cmd/billbook/main.go) | Application entry point: flags, data folders, lock, logging, recovery/encryption CLI, database opening, local HTTP server, browser launch and shutdown. |
 | [go.mod](../go.mod) | Go module identity, required toolchain language version and pinned direct dependencies. |
 | [go.sum](../go.sum) | Checksums for Go dependency modules. |
-| [ledgerleaf](../ledgerleaf) | Older generated root executable; use release/ledgerleaf-linux for the current build. |
+| [ledgerleaf](../ledgerleaf) | Older generated root executable; use release/ledgerleaf-linux-dev for the latest trial build. |
 
 ## Documentation
 
@@ -315,3 +315,7 @@ Tests with `fixture`, `setupTrading`, or `gstTrading` helpers create disposable 
 
 - `frontend/src/dispatch_selection.tsx`: dialog for allocation history, selected-quantity invoicing and returns; rejects negative selections.
 - `frontend/src/dispatch_consolidation.tsx`: dialog for combining compatible dispatch quantities into one editable invoice draft.
+
+## Offline dialog verification
+
+`frontend/tests/dialogs.offline.mjs` bundles selected real React screens with an in-memory API and drives Chrome in offline mode with all browser requests blocked. It covers expense and stock posting forms, period-lock cancel/save, year-closing previews and administrator-only actions without opening a database or application server. Run through `npm run test:ui:offline --prefix frontend` after building the frontend.
