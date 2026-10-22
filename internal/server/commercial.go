@@ -211,6 +211,9 @@ func (s *Server) commercialPDF(w http.ResponseWriter, r *http.Request) {
 	if bill.DocumentType == "DELIVERY_CHALLAN" {
 		p.Notes += fmt.Sprintf("\nAccompanies finalized invoice ID %d; stock was posted by that invoice.", bill.SourceID)
 	}
+	if imageExportData(w, r, p) {
+		return
+	}
 	data, e := printing.PDF(p)
 	if e != nil {
 		fail(w, e)

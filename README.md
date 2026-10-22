@@ -83,3 +83,5 @@ The local repository uses `main`. Initial commit `7aa7c24` captures the existing
 Simplicity and familiar billing/accounting workflows are core product requirements. See [interface principles](docs/UX_PRINCIPLES.md) for the conventions guiding future features.
 
 Daily entry supports **Save & review → Edit draft or Finalize/Issue → Download/print PDF** in the same document dialog. **Orders & quotations** includes direct purchase-order entry. Running item amounts use entered prices; review uses the saved backend calculation. See [the daily-entry walkthrough](docs/TESTING_GUIDE.md#daily-invoice-and-order-entry).
+
+**Download PDF** is the primary document export. **Export image (PNG)** is available alongside it for finalized invoices, issued orders/quotations, credit notes, dispatch challans and POS A4 invoices. Long documents provide a separate PNG download for each page.

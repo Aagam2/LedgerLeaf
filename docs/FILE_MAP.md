@@ -327,3 +327,7 @@ Tests with `fixture`, `setupTrading`, or `gstTrading` helpers create disposable 
 ## Daily billing amounts
 
 `frontend/src/draft_amounts.ts` computes exact entered line amounts and their subtotal for bill entry, before backend price/tax/adjustment calculation. `frontend/tests/draft_amounts.test.mjs` checks fractional rounding, discounts and limits. The offline browser harness additionally covers the continuous saved-draft review/finalization/print flow and direct purchase-order entry.
+
+## PDF and PNG document exports
+
+`frontend/src/document_downloads.tsx` keeps PDF primary and manages PNG generation/download links. `frontend/src/invoice_image.ts` renders/paginates the saved print model into browser canvas PNGs; `frontend/tests/invoice_image.test.mjs` checks wrapping. `internal/server/document_export.go` serves the prepared model for `format=image-data` from existing document handlers; its pure recorder test opens no database/listener. The offline browser harness verifies actual PNG files, multi-page completeness, frozen content and export-error recovery.

@@ -275,3 +275,14 @@ No `.env` file, database or service was accessed. No real posting, persistence, 
 - `release/ledgerleaf-linux-dev` was rebuilt offline with Go 1.27.3 and the final embedded frontend; it was not launched. `git diff --check` passes.
 
 No database, application server or external service was accessed, and no `.env` file was read. Backend/schema code is unchanged. The harness validates interface state transitions and request payloads against in-memory responses; it does not verify real posting, stock/ledger persistence, tax calculation or PDF generation/printing. Final-stage checks and previously documented implementation gaps remain pending.
+
+## 2026-10-22 — PNG export, PDF first
+
+- Frontend TypeScript/production build and all four frontend unit-test files pass. New wrapping coverage includes long unbroken values, paragraph breaks, Unicode and literal markup text.
+- Ten offline browser scenarios pass, including actual PNG downloads. The new export scenario verifies PDF is first/primary, image failures retain PDF and allow retry, a one-page download has a valid PNG signature and 1200 × 1697 dimensions, the saved logo is drawn, and title/status, GST/HSN/cess, adjustments, total and notes reach the canvas. A 100-item export produces multiple page links; all item names and final notes are drawn, and the final page downloads under its correct page filename. Existing daily-entry/role checks pass with the clearer Download PDF label.
+- The first browser run found relative URL construction depended on the live page origin, unavailable in the opaque offline harness. Query construction now works directly from the local export path; the final run passes.
+- Visually inspected actual single-page and last-page PNG files from stubbed invoice content. Pagination now keeps ordinary item blocks together. This is a separate image layout using local fonts, not a PDF rasterization or proof of production tax correctness.
+- Pure Go `TestImageExportData` passes for invoice, credit-note, commercial and dispatch URL shapes: default PDF response is untouched, and image data round-trips the complete print model including logo bytes. Only this selected server test ran; it uses response recorders and no database/listener. Existing `internal/printing` tests pass, including PDF content/pagination and receipt sizes, without a database or service.
+- Go vet and offline Linux development build pass with Go 1.27.3. Full E2E discovery succeeds for 42 tests; database-backed tests were not run. The development executable was rebuilt, not launched. `git diff --check` passes.
+
+No `.env` file was read and no database, application server or external service was accessed. Live endpoint integration, Windows/browser/font coverage and physical printers remain unverified. PNG export is currently for business documents; report export formats remain CSV/XLSX/PDF.

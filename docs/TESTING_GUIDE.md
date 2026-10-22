@@ -250,6 +250,14 @@ In Billing, **+ New bill** starts a sale and **+ Purchase bill** starts a purcha
 2. Select the customer/supplier, warehouse and dates, then add products through the item dropdown or Browse search. A new item's quantity is focused and selected for typing. Choosing an item already on the document focuses its existing quantity and explains how to update it.
 3. Check the **Item amount** and **Item subtotal** while entering quantities/prices/line discounts. These use entered prices and rounding; final tax, configured price-list values and document adjustments are calculated by the backend when saved.
 4. Choose **Save & review** to save an editable draft and review the returned details/total in the same dialog. This step saves a draft; it does not post stock or accounting. **Edit draft** returns to its form. **Save draft** remains available to save and leave the dialog.
-5. Choose **Finalize** for a bill or **Issue** for an order/quotation, then confirm. Failed posting leaves the review open for correction/retry. Successful posting opens the resulting document and its **Download / print PDF** link. Drafts do not offer that link. No funds are transferred by these actions.
+5. Choose **Finalize** for a bill or **Issue** for an order/quotation, then confirm. Failed posting leaves the review open for correction/retry. Successful posting opens the resulting document and its **Download PDF** link. Drafts do not offer that link. No funds are transferred by these actions.
 
 Orders & quotations is the user-facing name for the existing Commercial documents screen; internal page identity and API/storage document codes remain unchanged.
+
+### PDF first, optional PNG images
+
+Open a finalized invoice or issued order/quotation and choose **Download PDF** for the primary export. **Export image (PNG)** is the secondary action. Neither action automatically sends anything to a printer. Credit notes and dispatch challans offer the same controls; POS retains receipt PDFs and offers PDF/PNG for its A4 invoice.
+
+A single-page PNG downloads automatically and also leaves a **Download PNG** link. For a longer document, wait for the page links and download each required page. Images are 1200 × 1697 pixels, use a white background and wrap long text across pages. The saved PDF print content supplies the document details, tax text, adjustments, notes and frozen logo where present. PNG uses a browser-rendered layout and local fonts; it is not a pixel-for-pixel conversion of the PDF. PDF remains the preferred print/document format.
+
+If PNG generation fails, its error appears beside the export controls and Download PDF remains available. Image creation uses the local application and browser, without an external conversion service or new installed runtime. Business access and finalized/issued-document restrictions still apply. Report CSV/XLSX/PDF exports are unchanged; this PNG feature covers business documents.

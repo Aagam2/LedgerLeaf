@@ -178,3 +178,7 @@ Use Find business in the sidebar to locate businesses beyond the initial list; s
 ## Faster daily entry
 
 **Save & review** saves the current bill/order as a draft and displays its calculated total without returning to the list. Use **Edit draft** to correct it, then **Finalize** or **Issue** and confirm before printing. **Save draft** still saves for later. The running item subtotal uses entered prices and does not replace the backend's tax/adjustment calculation. **Orders & quotations → + Purchase order** starts directly with the supplier and purchase prices.
+
+## PDF and image downloads
+
+Use **Download PDF** as the primary export for invoices, orders/quotations, credit notes and dispatch challans. **Export image (PNG)** produces shareable page images from the same saved print content. A short document downloads one PNG; a long one presents individual page links. PDF and PNG have separate layouts. These are file exports; physical printing is optional through a viewer. POS keeps its receipt PDFs and adds PDF/PNG controls for the A4 invoice.

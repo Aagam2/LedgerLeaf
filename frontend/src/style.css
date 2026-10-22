@@ -126,3 +126,5 @@ label>input[type=checkbox],label>input[type=radio]{flex:0 0 auto;margin:0}
 
 .bill-sticky-total{font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap;padding-right:12px}
 @media(max-width:760px){.bill-sticky-total{width:100%;padding:0}}
+
+.document-downloads{margin:12px 0;white-space:normal}.document-downloads .download{font-weight:600;text-align:center}.image-downloads{display:grid;gap:8px;margin-top:10px}.image-downloads p{margin:0}.image-downloads a{overflow-wrap:anywhere}

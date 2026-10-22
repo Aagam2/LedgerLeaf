@@ -3,6 +3,7 @@ import {build,transform} from 'esbuild';
 import {chromium, expect} from '@playwright/test';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -18,6 +19,7 @@ const bundle = await build({
     import {Navigation} from './src/navigation';
     import {BillingPage} from './src/billing';
     import {Dashboard} from './src/dashboard';
+    import {DocumentDownloads} from './src/document_downloads';
     import {useLanguage,setLanguage} from './src/i18n';
     window.setUiLanguage=setLanguage;
     function Workspace({role}){
@@ -27,7 +29,7 @@ const bundle = await build({
     }
     const root=createRoot(document.getElementById('root'));
     window.renderPage=(page,role='ADMIN')=>root.render(
-      <RoleContext.Provider value={role}>{page==='Workspace'?<Workspace role={role}/>:page==='Billing'?<BillingPage businessId={1}/>:page==='Orders'?<BillingPage businessId={1} commercial/>:page==='Banks'?
+      <RoleContext.Provider value={role}>{page==='Downloads'?<DocumentDownloads pdfURL="/api/document-pdf?business_id=1&id=1"/>:page==='Workspace'?<Workspace role={role}/>:page==='Billing'?<BillingPage businessId={1}/>:page==='Orders'?<BillingPage businessId={1} commercial/>:page==='Banks'?
         <BanksPage businessId={1}/>:
         <OperationsPage businessId={1} page={page}/>
       }</RoleContext.Provider>);
@@ -64,6 +66,11 @@ const bundle = await build({
           const id=new URLSearchParams(url.split('?')[1]).get('id');
           return id?window.savedDocuments[resource+':'+id]:(window.documentRows||[]);
         }
+        if(['document-pdf','commercial-pdf','credit-note-pdf','dispatches'].includes(resource)&&url.includes('format=image-data')){
+          window.imageRequests.push(url);
+          if(window.imageError){const error=window.imageError;window.imageError='';throw new Error(error)}
+          return window.printDocument;
+        }
         if(resource==='banks')return [{code:'6001',name:'Trading bank',account_number:'1234'}];
         if(resource==='period-lock')return {closed_through:window.savedLock};
         if(resource==='year-close')return window.closedYears;
@@ -86,7 +93,7 @@ try {
     const assets=path.resolve(root,'../internal/web/dist/assets');
     const css=(await fs.readdir(assets)).find(name=>name.endsWith('.css'));
     await page.addStyleTag({content:await fs.readFile(path.join(assets,css),'utf8')});
-    await page.evaluate(setup=>{window.requests=[];window.savedLock='2026-03-31';window.closedYears=[];window.failNext='';window.savedDocuments={};window.reviewTotal=0;window.minimalIssueResponse=false;Object.assign(window,setup)},setup);
+    await page.evaluate(setup=>{window.requests=[];window.savedLock='2026-03-31';window.closedYears=[];window.failNext='';window.savedDocuments={};window.reviewTotal=0;window.minimalIssueResponse=false;window.imageRequests=[];window.imageError='';Object.assign(window,setup)},setup);
     await page.addScriptTag({content:bundle.outputFiles[0].text});
     await page.evaluate(({name,role})=>window.renderPage(name,role),{name,role});
     page.on('dialog',dialog=>dialog.accept());
@@ -253,7 +260,7 @@ try {
   await dialog.getByRole('button',{name:'Save & review',exact:true}).click();
   dialog=page.getByRole('dialog',{name:'Review document',exact:true});
   await expect(dialog.getByRole('heading',{name:'Total ₹ 123.45',exact:true})).toBeVisible();
-  await expect(dialog.getByRole('link',{name:'Download / print PDF ↗',exact:true})).toHaveCount(0);
+  await expect(dialog.getByRole('link',{name:'Download PDF',exact:true})).toHaveCount(0);
   expect(await page.evaluate(()=>window.requests.filter(r=>r.resource==='finalize').length)).toBe(0);
   await dialog.getByRole('button',{name:'Edit draft',exact:true}).click();
   dialog=page.getByRole('dialog',{name:'New sales bill',exact:true});
@@ -273,7 +280,7 @@ try {
   page.on('dialog',event=>event.accept());
   await dialog.getByRole('button',{name:'Finalize',exact:true}).click();
   dialog=page.getByRole('dialog',{name:'INV/001',exact:true});
-  await expect(dialog.getByRole('link',{name:'Download / print PDF ↗',exact:true})).toHaveAttribute('href','/api/document-pdf?business_id=1&id=1');
+  await expect(dialog.getByRole('link',{name:'Download PDF',exact:true})).toHaveAttribute('href','/api/document-pdf?business_id=1&id=1');
   await expect(dialog.getByRole('button',{name:'Edit draft',exact:true})).toHaveCount(0);
   await page.context().close();
   console.log('PASS invoice entry focuses quantities, shows exact entered amounts, retains failed drafts and reviews server totals before confirmed finalization/printing');
@@ -292,7 +299,7 @@ try {
   await page.evaluate(()=>window.minimalIssueResponse=true);
   await dialog.getByRole('button',{name:'Issue',exact:true}).click();
   dialog=page.getByRole('dialog',{name:'PO/001',exact:true});
-  await expect(dialog.getByRole('link',{name:'Download / print PDF ↗',exact:true})).toHaveAttribute('href','/api/commercial-pdf?business_id=1&id=1');
+  await expect(dialog.getByRole('link',{name:'Download PDF',exact:true})).toHaveAttribute('href','/api/commercial-pdf?business_id=1&id=1');
   const orderBounds=await dialog.boundingBox();expect(orderBounds.x+orderBounds.width).toBeLessThanOrEqual(390);
   await page.context().close();
   console.log('PASS purchase order uses supplier/purchase prices and handles issue/retry response before print on mobile');
@@ -305,9 +312,53 @@ try {
   dialog=page.getByRole('dialog');
   await expect(dialog.getByRole('button',{name:'Edit draft',exact:true})).toHaveCount(0);
   await expect(dialog.getByRole('button',{name:'Finalize',exact:true})).toHaveCount(0);
-  await expect(dialog.getByRole('link',{name:'Download / print PDF ↗',exact:true})).toHaveCount(0);
+  await expect(dialog.getByRole('link',{name:'Download PDF',exact:true})).toHaveCount(0);
   expect(await page.evaluate(()=>window.requests.length)).toBe(0);
   await page.context().close();
   console.log('PASS viewer draft inspection exposes no editing, finalization or draft-print actions');
+
+
+  const logo=(await fs.readFile(path.join(root,'../tests/fixtures/logo.png'))).toString('base64');
+  const printDocument={Title:'TAX INVOICE - SALE - RETURNED / CANCELLED',Number:'INV/001',Business:'Café Traders',Address:'Saved business address\nGSTIN: FROZEN-GSTIN',Party:'Customer One',PartyAddress:'Saved customer address',Date:'2026-10-22',DueDate:'2026-10-30',TaxSummary:'CGST 9.00 / SGST 9.00 / Cess 1.00',Adjustments:'Rounding -0.01',Total:'118.99',Notes:'Frozen terms, footer and bank details',Logo:logo,LogoFormat:'png',Lines:[{Name:'Saved item',Quantity:'1.000 PCS',Price:'100.00',Discount:'0.00',Amount:'100.00',Tax:'HSN 1234 / GST 18%'}]};
+  page=await pageFor('Downloads','ADMIN',{width:1280,height:900},{printDocument});
+  await page.evaluate(()=>{
+    window.drawnTexts=[];window.logoDraws=0;
+    const text=CanvasRenderingContext2D.prototype.fillText,draw=CanvasRenderingContext2D.prototype.drawImage;
+    CanvasRenderingContext2D.prototype.fillText=function(value,...args){window.drawnTexts.push(value);return text.call(this,value,...args)};
+    CanvasRenderingContext2D.prototype.drawImage=function(...args){window.logoDraws++;return draw.apply(this,args)};
+  });
+  await expect(page.locator('.document-downloads .actions > :first-child')).toHaveText('Download PDF');
+  await expect(page.getByRole('button',{name:'Export image (PNG)',exact:true})).not.toHaveClass(/primary/);
+  await page.evaluate(()=>window.imageError='Export temporarily unavailable');
+  await page.getByRole('button',{name:'Export image (PNG)',exact:true}).click();
+  await expect(page.getByRole('alert')).toContainText('Export temporarily unavailable');
+  await expect(page.getByRole('link',{name:'Download PDF',exact:true})).toBeVisible();
+  const pngPromise=page.waitForEvent('download');
+  await page.getByRole('button',{name:'Export image (PNG)',exact:true}).click();
+  const pngDownload=await pngPromise;
+  expect(pngDownload.suggestedFilename()).toBe('Ledgerleaf-INV-001.png');
+  const exportDir=process.env.LEDGERLEAF_UI_PREVIEW_DIR||await fs.mkdtemp(path.join(tmpdir(),'ledgerleaf-png-test-'));
+  await fs.mkdir(exportDir,{recursive:true});
+  const pngPath=path.join(exportDir,'invoice-export.png');await pngDownload.saveAs(pngPath);
+  const png=await fs.readFile(pngPath);
+  expect(png.subarray(0,8).toString('hex')).toBe('89504e470d0a1a0a');
+  expect(png.readUInt32BE(16)).toBe(1200);expect(png.readUInt32BE(20)).toBe(1697);
+  const painted=await page.evaluate(()=>({text:window.drawnTexts.join('\n'),logos:window.logoDraws}));
+  for(const value of ['RETURNED / CANCELLED','FROZEN-GSTIN','HSN 1234','Cess 1.00','Total: INR 118.99','Frozen terms, footer and bank details','Rounding -0.01'])expect(painted.text).toContain(value);
+  expect(painted.logos).toBe(1);
+  expect(await page.evaluate(()=>window.imageRequests.at(-1))).toBe('document-pdf?business_id=1&id=1&format=image-data');
+  await page.evaluate(document=>{window.printDocument={...document,Lines:Array.from({length:100},(_,i)=>({Name:'Item '+String(i+1).padStart(3,'0'),Quantity:'1 PCS',Price:'1.00',Discount:'0.00',Amount:'1.00',Tax:'CGST and SGST details'})),Notes:'FINAL DOCUMENT NOTES'};window.drawnTexts=[]},printDocument);
+  await page.getByRole('button',{name:'Export image (PNG)',exact:true}).click();
+  await expect(page.getByRole('status')).toContainText('Images ready.');
+  const imageLinks=page.locator('.image-downloads a');const pageCount=await imageLinks.count();expect(pageCount).toBeGreaterThan(1);
+  const longText=await page.evaluate(()=>window.drawnTexts.join('\n'));
+  for(let i=1;i<=100;i++)expect(longText).toContain('Item '+String(i).padStart(3,'0'));
+  expect(longText).toContain('FINAL DOCUMENT NOTES');
+  const lastPromise=page.waitForEvent('download');await imageLinks.last().click();
+  const lastDownload=await lastPromise;expect(lastDownload.suggestedFilename()).toBe(`Ledgerleaf-INV-001-page-${pageCount}.png`);
+  await lastDownload.saveAs(path.join(exportDir,'invoice-last-page.png'));
+  if(!process.env.LEDGERLEAF_UI_PREVIEW_DIR)await fs.rm(exportDir,{recursive:true,force:true});
+  await page.context().close();
+  console.log('PASS PDF stays primary; real PNG downloads preserve frozen logo/tax/notes, errors can retry, and long documents include every item across separate page images');
 
 } finally {await browser.close()}

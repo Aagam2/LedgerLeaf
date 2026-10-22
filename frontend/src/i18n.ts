@@ -14,6 +14,7 @@ function subscribeLanguage(notify:()=>void){
 export function useLanguage(){const language=useSyncExternalStore(subscribeLanguage,getLanguage,()=> 'en' as Language);return {language,setLanguage}}
 // UI copy only. Never translate record values, API codes, stored data or numbers.
 export const translations:Record<string,[string,string]>={
+'Download PDF':['PDF डाउनलोड करें','PDF ડાઉનલોડ કરો'],'Export image (PNG)':['छवि निर्यात करें (PNG)','છબી નિકાસ કરો (PNG)'],'Creating images…':['छवियाँ बन रही हैं…','છબીઓ બની રહી છે…'],'Download PNG':['PNG डाउनलोड करें','PNG ડાઉનલોડ કરો'],'Image ready.':['छवि तैयार है।','છબી તૈયાર છે.'],'Images ready. Download each page below.':['छवियाँ तैयार हैं। नीचे हर पृष्ठ डाउनलोड करें।','છબીઓ તૈયાર છે. નીચે દરેક પાનું ડાઉનલોડ કરો.'],'pages':['पृष्ठ','પાનાં'],'Downloads':['डाउनलोड','ડાઉનલોડ'],
 'Review document':['दस्तावेज़ जाँचें','દસ્તાવેજ તપાસો'],
 'Commercial type':['दस्तावेज़ का प्रकार','દસ્તાવેજનો પ્રકાર'],
 'Orders & quotations':['ऑर्डर और कोटेशन','ઓર્ડર અને ક્વોટેશન'],

@@ -61,12 +61,16 @@ func (s *Server) dispatches(w http.ResponseWriter, r *http.Request) {
 				for _, l := range d.Lines {
 					p.Lines = append(p.Lines, printing.Line{Name: l.Name, Quantity: decimal(l.Quantity, 3) + " " + l.Unit, Price: "—", Discount: "—", Amount: "—"})
 				}
+				if imageExportData(w, r, p) {
+					return
+				}
 				data, e := printing.PDF(p)
 				if e != nil {
 					fail(w, e)
 					return
 				}
 				w.Header().Set("Content-Type", "application/pdf")
+				w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="Ledgerleaf-dispatch-%d.pdf"`, d.ID))
 				w.Write(data)
 				return
 			}

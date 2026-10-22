@@ -88,6 +88,9 @@ func (s *Server) pdf(w http.ResponseWriter, r *http.Request) {
 	for _, l := range bill.Lines {
 		p.Lines = append(p.Lines, printing.Line{Name: l.Name, Quantity: decimal(l.Quantity, 3) + " " + l.Unit, Price: decimal(l.Price, 2), Discount: decimal(l.Discount, 2), Amount: decimal(l.Amount, 2), Tax: taxLineText(bill, l)})
 	}
+	if imageExportData(w, r, p) {
+		return
+	}
 	var data []byte
 	switch r.URL.Query().Get("paper") {
 	case "":

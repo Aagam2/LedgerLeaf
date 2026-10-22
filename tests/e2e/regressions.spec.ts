@@ -297,7 +297,7 @@ test('GST configuration, tax invoice and partial credit note reconcile in browse
  await page.getByRole('button',{name:'Post return',exact:true}).click();
  await expect(page.getByRole('cell',{name:'₹ 118.00',exact:true})).toBeVisible();
  await navigate(page, 'Credit notes');
- await expect(page.getByRole('link',{name:'Download credit note'})).toBeVisible();
+ await expect(page.getByRole('link',{name:'Download PDF'})).toBeVisible();
 });
 
 test('quotation issues without stock posting and converts once into a billing draft',async({page})=>{
@@ -310,7 +310,7 @@ test('quotation issues without stock posting and converts once into a billing dr
  page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'Issue',exact:true}).click();
  await expect(page.getByRole('cell',{name:'ISSUED',exact:true})).toBeVisible();
  await page.getByRole('button',{name:'View',exact:true}).click();
- const downloadPromise=page.waitForEvent('download');await page.getByRole('link',{name:'Download / print PDF ↗'}).click();expect((await downloadPromise).suggestedFilename()).toContain('.pdf');
+ const downloadPromise=page.waitForEvent('download');await page.getByRole('link',{name:'Download PDF'}).click();expect((await downloadPromise).suggestedFilename()).toContain('.pdf');
  await page.getByRole('button',{name:'Close',exact:true}).click();
  await page.getByRole('button',{name:'Convert to bill draft'}).click();
  await expect(page.getByText('Linked bill #1')).toBeVisible();
