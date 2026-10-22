@@ -234,3 +234,11 @@ Dispatch invoicing, uninvoiced returns, history and multi-dispatch consolidation
 - Collapsed business details and first-use guidance on the overview. Quick actions prioritize billing, POS, expenses, parties, products and reports.
 - Billing has a primary New bill action and a separate Purchase bill action for permitted roles. Purchase entry starts with its supplier and purchase type; new dialog titles distinguish sales/purchases. Table type labels use readable words. The introduction is shorter, with GST instructions beside the optional tax controls. Draft/finalize and financial confirmation behavior are unchanged.
 - New common labels include Hindi/Gujarati translations. Updated E2E navigation helpers open the relevant sidebar group before clicking. No database/schema/API change. Offline interface coverage and verification limits are recorded in TEST_REPORT.md.
+
+## 2026-10-22 — Daily order and invoice entry
+
+- Orders & quotations is now directly visible among daily tasks for permitted roles, retaining the existing Commercial documents internal page/API identity. Purchase orders have a direct create action; document-type labels are readable. This covers existing purchase orders/quotations/estimates/proformas, not a new sales-order type.
+- Adding or reselecting an item focuses/selects its quantity. Duplicate selection explains that the existing quantity should be updated. Screen-reader field names now use Quantity, Unit price and Discount instead of internal field names.
+- Exact half-up running item amounts/subtotal use integer arithmetic. They explicitly describe entered prices; tax, configured price lists and invoice adjustments remain server-calculated.
+- Save & review persists a draft, displays the returned total and retains the same document dialog. Edit draft returns to its saved fields. Finalize/Issue requires the existing confirmation and then exposes the resulting document PDF. Drafts do not show a print link; failed saves/postings retain the form/review. Saving disables entry controls. Save draft and existing list-based posting remain available. No backend/schema change.
+- New common labels and the invoice help flow include Hindi/Gujarati translations. Frontend unit checks, offline browser scenarios, compilation and verification boundaries are recorded in TEST_REPORT.md.

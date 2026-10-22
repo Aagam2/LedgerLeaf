@@ -243,3 +243,13 @@ Developers can check these dialog interactions without starting the application 
 The main menu keeps Overview, Billing, POS, Parties, Products, Expenses and Reports visible when permitted. Open **Other documents**, **Stock**, **Accounting** or **Settings** for their related tools. Help remains directly accessible. Empty groups are hidden for restricted roles. Business details and first-use steps on Overview expand when needed.
 
 In Billing, **+ New bill** starts a sale and **+ Purchase bill** starts a purchase with its supplier selector. Biller accounts retain sale-only entry. Both use the same draft/review/finalize process. Tax guidance is available inside **Tax, pricing and delivery options**.
+
+### Daily invoice and order entry
+
+1. Open **Billing → + New bill** for a sale or **+ Purchase bill** for a purchase. For an order, open **Orders & quotations → + Purchase order**; **+ New document** starts a quotation. This screen retains the existing estimate, proforma and purchase-order workflows; it does not introduce a separate sales-order type.
+2. Select the customer/supplier, warehouse and dates, then add products through the item dropdown or Browse search. A new item's quantity is focused and selected for typing. Choosing an item already on the document focuses its existing quantity and explains how to update it.
+3. Check the **Item amount** and **Item subtotal** while entering quantities/prices/line discounts. These use entered prices and rounding; final tax, configured price-list values and document adjustments are calculated by the backend when saved.
+4. Choose **Save & review** to save an editable draft and review the returned details/total in the same dialog. This step saves a draft; it does not post stock or accounting. **Edit draft** returns to its form. **Save draft** remains available to save and leave the dialog.
+5. Choose **Finalize** for a bill or **Issue** for an order/quotation, then confirm. Failed posting leaves the review open for correction/retry. Successful posting opens the resulting document and its **Download / print PDF** link. Drafts do not offer that link. No funds are transferred by these actions.
+
+Orders & quotations is the user-facing name for the existing Commercial documents screen; internal page identity and API/storage document codes remain unchanged.

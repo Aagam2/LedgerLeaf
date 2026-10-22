@@ -19,3 +19,9 @@ Before considering a usability change complete, check the ordinary path, a rejec
 The menu now keeps everyday tasks visible and groups other tools into expandable sections. Business details and first-use instructions are collapsed on the overview. Quick actions prioritize billing, POS, expenses, parties, products and reports. Billing offers direct purchase entry, a stronger primary create action, readable sale/purchase labels and concise introductory guidance. Tax guidance remains with the tax options; return/refund guidance remains inside the return dialog.
 
 Further work should apply these same conventions to specialist screens, remaining internal-code labels and full translation. This pass establishes a consistent direction; it does not claim a complete usability or accessibility audit.
+
+## Daily entry flow — 2026-10-22
+
+Prioritize order and invoice entry over specialist setup. Orders & quotations is a daily menu destination, with a direct Purchase order action. Adding an item should focus its quantity; selecting an existing item should make its quantity easy to update rather than silently ignoring the selection. Entry amounts are estimates from typed prices, clearly separate from the server-calculated total.
+
+Keep users in one document: entry → Save & review → edit or confirm finalization/issue → print PDF. Saving the review persists a draft; it does not finalize it. Keep Save draft available for work that will be finished later. Show the confirmation action beside the reviewed total, retain failed submissions, prevent edits while saving, and expose printing only after finalization/issue.

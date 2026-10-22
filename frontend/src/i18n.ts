@@ -14,6 +14,16 @@ function subscribeLanguage(notify:()=>void){
 export function useLanguage(){const language=useSyncExternalStore(subscribeLanguage,getLanguage,()=> 'en' as Language);return {language,setLanguage}}
 // UI copy only. Never translate record values, API codes, stored data or numbers.
 export const translations:Record<string,[string,string]>={
+'Review document':['दस्तावेज़ जाँचें','દસ્તાવેજ તપાસો'],
+'Commercial type':['दस्तावेज़ का प्रकार','દસ્તાવેજનો પ્રકાર'],
+'Orders & quotations':['ऑर्डर और कोटेशन','ઓર્ડર અને ક્વોટેશન'],
+'+ Purchase order':['+ खरीद ऑर्डर','+ ખરીદી ઓર્ડર'],
+'Estimate':['अनुमान','અંદાજ'],'Quotation':['कोटेशन','ક્વોટેશન'],'Proforma invoice':['प्रोफॉर्मा बिल','પ્રોફોર્મા બિલ'],'Purchase order':['खरीद ऑर्डर','ખરીદી ઓર્ડર'],'Delivery challan':['डिलीवरी चालान','ડિલિવરી ચલણ'],
+'Save & review':['सहेजें और जाँचें','સાચવો અને તપાસો'],'Edit draft':['ड्राफ्ट संपादित करें','ડ્રાફ્ટ સુધારો'],
+'Item amount':['आइटम की राशि','વસ્તુની રકમ'],'Item subtotal':['आइटम का उप-योग','વસ્તુઓનો પેટાસરવાળો'],
+'From entered prices. Save & review checks configured prices, tax and bill adjustments.':['दर्ज मूल्यों से। सहेजें और जाँचें से निर्धारित मूल्य, कर और बिल समायोजन जाँचे जाते हैं।','દાખલ કરેલા ભાવથી. સાચવો અને તપાસો દ્વારા નક્કી કરેલા ભાવ, કર અને બિલના ફેરફારો તપાસાય છે.'],
+'This item is already on the bill. Update its quantity.':['यह आइटम बिल में है। इसकी मात्रा बदलें।','આ વસ્તુ બિલમાં છે. તેની માત્રા બદલો.'],
+'Draft saved. Check the details and total before issuing.':['ड्राफ्ट सहेजा गया। जारी करने से पहले विवरण और कुल राशि जाँचें।','ડ્રાફ્ટ સાચવ્યો. જારી કરતા પહેલાં વિગતો અને કુલ રકમ તપાસો.'],
 'Quick actions':['त्वरित कार्य','ઝડપી કાર્યો'],
 'New purchase bill':['नया खरीद बिल','નવું ખરીદી બિલ'],'New sales bill':['नया बिक्री बिल','નવું વેચાણ બિલ'],
 'Your sales, purchases and balances in one place.':['आपकी बिक्री, खरीद और शेष एक जगह।','તમારું વેચાણ, ખરીદી અને બાકી રકમ એક જગ્યાએ.'],

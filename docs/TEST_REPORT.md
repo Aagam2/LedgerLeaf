@@ -264,3 +264,14 @@ Verification boundaries: no database connection, application server or external 
 - Rebuilt `release/ledgerleaf-linux-dev` offline with Go 1.27.3 and the refreshed frontend. The executable was not launched. `git diff --check` passes.
 
 No `.env` file, database or service was accessed. No real posting, persistence, tax, platform or full accessibility validation was performed in this UI pass. The existing verification limitations remain in effect.
+
+## 2026-10-22 — Daily order/invoice entry and review
+
+- Frontend TypeScript/production build passes. All three frontend unit-test files pass, including new fractional-quantity/paise rounding, line-discount and subtotal-limit checks. An initial boundary fixture used the wrong rupee/paise magnitude; it was corrected and the limit checks rerun successfully.
+- Nine offline browser scenarios pass. New coverage checks quantity focus/selection, repeated-item guidance without duplicate lines, running exact line/subtotal amounts, failed draft-save input preservation, server-returned review totals, editing/resaving the same draft ID, cancelled finalization without another request, failed finalization retry, and PDF-link readiness after finalization. Purchase-order coverage checks direct supplier/purchase-price entry, issue-response fallback and a 390-pixel layout. Viewer inspection offers no edit/finalize/draft-print actions. Existing expense, stock, period, localization and navigation checks remain covered.
+- An initial order-selector check exposed its ambiguous accessible label. The control now has an explicit translated accessible name; the final run passes. Numeric boundary checking also now applies the line limit after its discount, consistent with the entered net amount.
+- Desktop entry/review screenshots were visually inspected in the offline harness. Its data and returned totals are deliberately stubbed; they are not a real accounting reconciliation. Item subtotal remains visible alongside the entry actions. Review actions sit beside the calculated total.
+- Full E2E discovery succeeds for 42 tests. Navigation aliases and quantity/price field selectors were updated. The database-backed tests were not executed.
+- `release/ledgerleaf-linux-dev` was rebuilt offline with Go 1.27.3 and the final embedded frontend; it was not launched. `git diff --check` passes.
+
+No database, application server or external service was accessed, and no `.env` file was read. Backend/schema code is unchanged. The harness validates interface state transitions and request payloads against in-memory responses; it does not verify real posting, stock/ledger persistence, tax calculation or PDF generation/printing. Final-stage checks and previously documented implementation gaps remain pending.

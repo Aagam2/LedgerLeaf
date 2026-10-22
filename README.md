@@ -81,3 +81,5 @@ Administrators can download an all-business, all-table Excel workbook from **Bac
 The local repository uses `main`. Initial commit `7aa7c24` captures the existing source, documentation, tests, migrations and embedded web assets before further changes. Local executables, release artifacts, installed dependencies, Python caches, database files and `.env` files are excluded.
 
 Simplicity and familiar billing/accounting workflows are core product requirements. See [interface principles](docs/UX_PRINCIPLES.md) for the conventions guiding future features.
+
+Daily entry supports **Save & review → Edit draft or Finalize/Issue → Download/print PDF** in the same document dialog. **Orders & quotations** includes direct purchase-order entry. Running item amounts use entered prices; review uses the saved backend calculation. See [the daily-entry walkthrough](docs/TESTING_GUIDE.md#daily-invoice-and-order-entry).

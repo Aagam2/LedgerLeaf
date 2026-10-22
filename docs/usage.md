@@ -36,7 +36,7 @@ Administrators can limit a non-administrator to selected businesses in **Users &
 
 ## Duplicate a document
 
-In Billing or Commercial documents, **Duplicate** opens a new editable draft. Review the date, due date, customer, prices and taxes before saving. The copy does not reuse a source order or goods receipt, and saving does not post financial entries. A copied purchase bill without a goods receipt receives its own stock when finalized.
+In Billing or Orders & quotations, **Duplicate** opens a new editable draft. Review the date, due date, customer, prices and taxes before saving. The copy does not reuse a source order or goods receipt, and saving does not post financial entries. A copied purchase bill without a goods receipt receives its own stock when finalized.
 
 Application logs rotate at 5 MB; `application.log.1` through `.3` retain the three previous files.
 
@@ -60,7 +60,7 @@ In Reports, choose **product sales** for net sales, cost and gross profit, or **
 
 ## Invoice discount, charges and rounding
 
-In Billing or Commercial documents, enter **Invoice discount ₹** and **Allocated charges ₹**. These are fixed document amounts, after item-level discounts. The discount is allocated proportionally across the items; charges are then allocated across their remaining values. Both follow each item's configured tax treatment and the inclusive/exclusive price setting. Use this for costs sharing the supplied items' tax treatment; it does not classify separately taxable services. An invoice discount cannot exceed the item subtotal, and charges cannot be added to a fully discounted subtotal.
+In Billing or Orders & quotations, enter **Invoice discount ₹** and **Allocated charges ₹**. These are fixed document amounts, after item-level discounts. The discount is allocated proportionally across the items; charges are then allocated across their remaining values. Both follow each item's configured tax treatment and the inclusive/exclusive price setting. Use this for costs sharing the supplied items' tax treatment; it does not classify separately taxable services. An invoice discount cannot exceed the item subtotal, and charges cannot be added to a fully discounted subtotal.
 
 Check **Round total to nearest rupee** to round the payable total, half up. The difference posts separately to account 5300 (Invoice rounding); it does not change taxable value or inventory cost. Saved drafts, duplicates and commercial conversions retain the options. POS preserves saved line and invoice discounts/charges/rounding when resuming a draft. Billers cannot introduce invoice discounts or charges.
 
@@ -174,3 +174,7 @@ For implementation navigation, see [FILE_MAP.md](FILE_MAP.md).
 ### Configuration lookup and business search
 
 Use Find business in the sidebar to locate businesses beyond the initial list; switching retains the current page. Search/paging does not clear the selected business. GST setup, party balances, variant products/groups and opening-stock warehouses now support independent paginated search. Variant groups can be found beyond group 500, and the Warehouse master table is paginated. Parties and Products display record IDs for imports; warehouse IDs are also shown in their table.
+
+## Faster daily entry
+
+**Save & review** saves the current bill/order as a draft and displays its calculated total without returning to the list. Use **Edit draft** to correct it, then **Finalize** or **Issue** and confirm before printing. **Save draft** still saves for later. The running item subtotal uses entered prices and does not replace the backend's tax/adjustment calculation. **Orders & quotations → + Purchase order** starts directly with the supplier and purchase prices.

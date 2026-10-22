@@ -323,3 +323,7 @@ Tests with `fixture`, `setupTrading`, or `gstTrading` helpers create disposable 
 ## Interface conventions and grouped menu
 
 `docs/UX_PRINCIPLES.md` records simplicity and familiar financial workflows as product requirements. `frontend/src/navigation.tsx` defines the grouped, role-filtered main menu. `tests/e2e/navigation.ts` opens a destination's group before navigating in full-application tests. Offline dialog checks additionally cover the grouped menu and direct purchase entry.
+
+## Daily billing amounts
+
+`frontend/src/draft_amounts.ts` computes exact entered line amounts and their subtotal for bill entry, before backend price/tax/adjustment calculation. `frontend/tests/draft_amounts.test.mjs` checks fractional rounding, discounts and limits. The offline browser harness additionally covers the continuous saved-draft review/finalization/print flow and direct purchase-order entry.

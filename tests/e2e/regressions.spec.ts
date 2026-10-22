@@ -91,8 +91,8 @@ test('stock shortage displays an error and preserves the editable draft', async 
   await expect(page.getByRole('alert')).toContainText('insufficient stock');
   await expect(page.getByRole('cell', {name: 'DRAFT', exact: true}).last()).toBeVisible();
   await page.getByRole('button', {name: 'Edit', exact: true}).click();
-  await expect(page.getByLabel('Notebook quantityText')).toHaveValue('2.000');
-  await page.getByLabel('Notebook quantityText').fill('1.000');
+  await expect(page.getByLabel('Notebook Quantity')).toHaveValue('2.000');
+  await page.getByLabel('Notebook Quantity').fill('1.000');
   await page.getByRole('button', {name: 'Save draft'}).click();
   await expect(page.getByRole('cell', {name: '₹ 100.00', exact: true})).toBeVisible();
 });
@@ -279,7 +279,7 @@ test('GST configuration, tax invoice and partial credit note reconcile in browse
  await page.getByText('Tax, pricing and delivery options',{exact:true}).click();
  await page.getByLabel('Place of supply (state code)').fill('27');
  await page.getByLabel('Add line item').selectOption('1');
- await page.getByLabel('Notebook quantityText').fill('2');
+ await page.getByLabel('Notebook Quantity').fill('2');
  await page.getByRole('button',{name:'Save draft'}).click();
  page.once('dialog',d=>d.accept());
  await page.getByRole('button',{name:'Finalize',exact:true}).click();
@@ -372,7 +372,7 @@ test('automatic backup policy persists and duplicate bill stays an unposted draf
  await post(page,'finalize?business_id=1',{id:original.id});
  await navigate(page, 'Billing');
  await page.getByRole('button',{name:'Duplicate',exact:true}).click();
- await expect(page.getByLabel('Notebook quantityText')).toHaveValue('1.000');
+ await expect(page.getByLabel('Notebook Quantity')).toHaveValue('1.000');
  await page.getByRole('button',{name:'Save draft',exact:true}).click();
  await expect(page.getByRole('cell',{name:'DRAFT',exact:true})).toBeVisible();
  const stock=await page.request.get(origin+'/api/stock?business_id=1');
@@ -468,7 +468,7 @@ test('alternate units persist on bills and POS while stock uses base units',asyn
  await page.getByLabel('Customer',{exact:true}).selectOption('2');
  await page.getByLabel('Add line item').selectOption('1');
  await page.getByLabel('Unit for item 1').selectOption('BOX');
- await expect(page.getByLabel('Notebook priceText')).toHaveValue('1200.00');
+ await expect(page.getByLabel('Notebook Unit price')).toHaveValue('1200.00');
  await page.getByRole('button',{name:'Save draft'}).click();
  await navigate(page, 'POS');
  await page.getByRole('button',{name:'Resume #2'}).click();
@@ -532,8 +532,8 @@ test('invoice adjustments survive editing and POS checkout with exact returns',a
  await page.getByRole('button',{name:'+ New bill'}).click();
  await page.getByLabel('Customer',{exact:true}).selectOption('2');
  await page.getByLabel('Add line item').selectOption('1');
- await page.getByLabel('Notebook quantityText').fill('3');
- await page.getByLabel('Notebook discountText').fill('1.00');
+ await page.getByLabel('Notebook Quantity').fill('3');
+ await page.getByLabel('Notebook Discount').fill('1.00');
  await page.getByText('Discounts, charges and notes',{exact:true}).click();
  await page.getByLabel('Invoice discount ₹',{exact:true}).fill('10.00');
  await page.getByLabel('Allocated charges ₹',{exact:true}).fill('2.49');
@@ -601,7 +601,7 @@ test('direct receipts split and combine across invoices and corrections preserve
  await expect(page.getByRole('status')).toContainText('Billing draft #1 created');
  await navigate(page, 'Billing');
  await page.getByRole('button',{name:'Edit',exact:true}).click();
- await page.getByLabel('Notebook priceText').fill('101.00');
+ await page.getByLabel('Notebook Unit price').fill('101.00');
  await page.getByRole('button',{name:'Save draft',exact:true}).click();
  page.once('dialog',d=>d.accept());
  await page.getByRole('button',{name:'Finalize',exact:true}).click();
@@ -900,7 +900,7 @@ test('dialogs keep business and product workflows compact and browse values', as
  await lookup.getByLabel('Search add line item').fill('Notebook');
  await lookup.getByRole('button',{name:'Notebook · BOOK Select →',exact:true}).click();
  await expect(lookup).toHaveCount(0);
- await expect(page.getByRole('dialog').getByLabel('Notebook quantityText')).toHaveValue('1.000');
+ await expect(page.getByRole('dialog').getByLabel('Notebook Quantity')).toHaveValue('1.000');
 });
 
 async function searchLookup(page:Page, name:string, query:string){

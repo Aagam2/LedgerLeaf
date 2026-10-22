@@ -113,3 +113,16 @@ label>input[type=checkbox],label>input[type=radio]{flex:0 0 auto;margin:0}
 .workflow-help{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
 .workflow-help ol{list-style:decimal;padding-left:22px;color:var(--muted);font-size:13px;line-height:1.8}
 @media(max-width:760px){.app-navigation{display:block;max-height:240px;overflow-y:auto}.app-navigation .navigation-everyday>.navigation-links{grid-template-columns:repeat(2,minmax(0,1fr))}.navigation-group .navigation-links{padding-left:8px}}
+
+.bill-fields{border:0;padding:0;margin:0;display:grid;gap:16px;min-width:0}
+.bill-fields>.record-form{margin-top:0}
+.draft-subtotal{text-align:right;padding:10px 0;font-variant-numeric:tabular-nums}
+.draft-subtotal strong{font-size:17px}.draft-subtotal p{font-size:12px;margin-bottom:0!important}
+.bill-entry-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;position:sticky;bottom:-22px;background:var(--surface);border-top:1px solid var(--line);padding:12px 0;z-index:1}
+.bill-entry-actions>.primary{flex:1;margin-top:0}
+.review-notice{padding:14px;margin:4px 0 18px;background:var(--surface-soft);border:1px solid var(--line);border-radius:8px}
+.bill-review-actions{display:flex;justify-content:flex-end;gap:10px;align-items:center;margin:16px 0;flex-wrap:wrap}
+@media(max-width:760px){.bill-entry-actions{bottom:-16px}.draft-subtotal{text-align:left}.bill-entry-actions>button{width:100%}}
+
+.bill-sticky-total{font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap;padding-right:12px}
+@media(max-width:760px){.bill-sticky-total{width:100%;padding:0}}

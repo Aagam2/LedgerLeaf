@@ -23,11 +23,11 @@ const bundle = await build({
     function Workspace({role}){
       useLanguage();
       const [page,setPage]=React.useState('Overview');
-      return <div className="shell"><aside><div className="brand">Ledgerleaf</div><Navigation role={role} hasBusiness page={page} onNavigate={setPage}/></aside><main><h1>{page}</h1>{page==='Billing'?<BillingPage businessId={1}/>:<Dashboard businessId={1} onNavigate={setPage}/>}</main></div>;
+      return <div className="shell"><aside><div className="brand">Ledgerleaf</div><Navigation role={role} hasBusiness page={page} onNavigate={setPage}/></aside><main><h1>{page}</h1>{page==='Billing'?<BillingPage businessId={1}/>:page==='Commercial documents'?<BillingPage businessId={1} commercial/>:<Dashboard businessId={1} onNavigate={setPage}/>}</main></div>;
     }
     const root=createRoot(document.getElementById('root'));
     window.renderPage=(page,role='ADMIN')=>root.render(
-      <RoleContext.Provider value={role}>{page==='Workspace'?<Workspace role={role}/>:page==='Billing'?<BillingPage businessId={1}/>:page==='Banks'?
+      <RoleContext.Provider value={role}>{page==='Workspace'?<Workspace role={role}/>:page==='Billing'?<BillingPage businessId={1}/>:page==='Orders'?<BillingPage businessId={1} commercial/>:page==='Banks'?
         <BanksPage businessId={1}/>:
         <OperationsPage businessId={1} page={page}/>
       }</RoleContext.Provider>);
@@ -45,13 +45,30 @@ const bundle = await build({
           if(resource==='period-lock')window.savedLock=body.closed_through;
           if(resource==='year-close'&&body.preview)return {date:body.date,net_profit:10000,lines:[{Account:'4000',Debit:10000,Credit:0},{Account:'3100',Debit:0,Credit:10000}]};
           if(resource==='year-close'){window.closedYears.push({date:body.date,net_profit:10000,reference:'year-close:'+body.date});window.savedLock=body.date}
+          if(resource==='documents'||resource==='commercial-documents'){
+            const saved={...body,id:body.id||1,status:'DRAFT',number:'',business_name:'Test business',party_name:'Test party',business_address:'Local address',party_address:'Party address',tax_total:0,tax_enabled:false,
+              lines:body.lines.map(l=>({...l,name:'Notebook',unit:'PCS',base_unit:'PCS',unit_factor:1000,amount:Math.round(l.quantity*l.price/1000)-l.discount,cgst:0,sgst:0,igst:0,cess:0})),
+              total:window.reviewTotal||body.lines.reduce((n,l)=>n+Math.round(l.quantity*l.price/1000)-l.discount,0)};
+            window.savedDocuments[resource+':'+saved.id]=saved;return saved;
+          }
+          if(resource==='finalize'||resource==='commercial-issue'){
+            const source=resource==='finalize'?'documents':'commercial-documents';
+            const saved=window.savedDocuments[source+':'+body.id];
+            const posted={...saved,status:resource==='finalize'?'FINALIZED':'ISSUED',number:resource==='finalize'?'INV/001':'PO/001'};
+            window.savedDocuments[source+':'+body.id]=posted;
+            return window.minimalIssueResponse?{ok:true}:posted;
+          }
           return {};
+        }
+        if(resource==='documents'||resource==='commercial-documents'){
+          const id=new URLSearchParams(url.split('?')[1]).get('id');
+          return id?window.savedDocuments[resource+':'+id]:(window.documentRows||[]);
         }
         if(resource==='banks')return [{code:'6001',name:'Trading bank',account_number:'1234'}];
         if(resource==='period-lock')return {closed_through:window.savedLock};
         if(resource==='year-close')return window.closedYears;
         if(resource==='parties')return [{id:3,name:'Supplier One',kind:'SUPPLIER',credit_days:0}];
-        if(resource==='products')return [{id:7,name:'Notebook',sku:'N7',kind:'PRODUCT',active:1}];
+        if(resource==='products')return [{id:7,name:'Notebook',sku:'N7',kind:'PRODUCT',active:1,sale_price:1000,purchase_price:600,unit:'PCS'}];
         if(resource==='warehouses')return [{id:1,name:'Main',active:1},{id:2,name:'Shop',active:1}];
         return [];
       }
@@ -60,7 +77,7 @@ const bundle = await build({
 });
 const browser = await chromium.launch({executablePath:process.env.CHROME_PATH||'/usr/bin/google-chrome',headless:true,ignoreDefaultArgs:['--headless=old'],args:['--headless=new','--no-sandbox','--disable-background-networking']});
 try {
-  async function pageFor(name, role='ADMIN', viewport={width:1280,height:900}) {
+  async function pageFor(name, role='ADMIN', viewport={width:1280,height:900},setup={}) {
     const context=await browser.newContext({offline:true,viewport});
     const page=await context.newPage();
     await page.route('**/*',route=>route.abort());
@@ -69,7 +86,7 @@ try {
     const assets=path.resolve(root,'../internal/web/dist/assets');
     const css=(await fs.readdir(assets)).find(name=>name.endsWith('.css'));
     await page.addStyleTag({content:await fs.readFile(path.join(assets,css),'utf8')});
-    await page.evaluate(()=>{window.requests=[];window.savedLock='2026-03-31';window.closedYears=[];window.failNext=''});
+    await page.evaluate(setup=>{window.requests=[];window.savedLock='2026-03-31';window.closedYears=[];window.failNext='';window.savedDocuments={};window.reviewTotal=0;window.minimalIssueResponse=false;Object.assign(window,setup)},setup);
     await page.addScriptTag({content:bundle.outputFiles[0].text});
     await page.evaluate(({name,role})=>window.renderPage(name,role),{name,role});
     page.on('dialog',dialog=>dialog.accept());
@@ -209,5 +226,88 @@ try {
   expect(mobileBounds.x+mobileBounds.width).toBeLessThanOrEqual(390);
   await page.context().close();
   console.log('PASS mobile biller menu and bill actions retain role restrictions');
+
+
+  page=await pageFor('Billing');
+  await page.getByRole('button',{name:'+ New bill',exact:true}).click();
+  dialog=page.getByRole('dialog',{name:'New sales bill',exact:true});
+  await dialog.getByLabel('Customer',{exact:true}).selectOption('3');
+  await dialog.getByLabel('Add line item',{exact:true}).selectOption('7');
+  const quantity=dialog.getByLabel('Notebook Quantity',{exact:true});
+  await expect(quantity).toBeFocused();
+  await quantity.fill('1.125');
+  await dialog.getByLabel('Notebook Discount',{exact:true}).fill('0.25');
+  await expect(dialog.getByLabel('Notebook Item amount',{exact:true})).toHaveText('₹ 11.00');
+  await expect(dialog.locator('.bill-entry-actions').getByText('Item subtotal: ₹ 11.00',{exact:true})).toBeVisible();
+  await dialog.getByLabel('Add line item',{exact:true}).selectOption('7');
+  await expect(quantity).toBeFocused();
+  await expect(dialog.getByRole('status')).toContainText('already on the bill');
+  await expect(dialog.locator('tbody tr')).toHaveCount(1);
+  if(process.env.LEDGERLEAF_UI_PREVIEW_DIR)await page.screenshot({path:path.join(process.env.LEDGERLEAF_UI_PREVIEW_DIR,'invoice-entry.png'),fullPage:true});
+  await page.evaluate(()=>window.failNext='Draft rejected');
+  await dialog.getByRole('button',{name:'Save & review',exact:true}).click();
+  await expect(dialog.getByRole('alert')).toContainText('Draft rejected');
+  await expect(quantity).toHaveValue('1.125');
+  // A distinct server total proves review doesn't present the entered subtotal as final.
+  await page.evaluate(()=>window.reviewTotal=12345);
+  await dialog.getByRole('button',{name:'Save & review',exact:true}).click();
+  dialog=page.getByRole('dialog',{name:'Review document',exact:true});
+  await expect(dialog.getByRole('heading',{name:'Total ₹ 123.45',exact:true})).toBeVisible();
+  await expect(dialog.getByRole('link',{name:'Download / print PDF ↗',exact:true})).toHaveCount(0);
+  expect(await page.evaluate(()=>window.requests.filter(r=>r.resource==='finalize').length)).toBe(0);
+  await dialog.getByRole('button',{name:'Edit draft',exact:true}).click();
+  dialog=page.getByRole('dialog',{name:'New sales bill',exact:true});
+  await expect(dialog.getByLabel('Notebook Quantity',{exact:true})).toHaveValue('1.125');
+  await dialog.getByRole('button',{name:'Save & review',exact:true}).click();
+  dialog=page.getByRole('dialog',{name:'Review document',exact:true});
+  expect(await page.evaluate(()=>window.requests.at(-1).body.id)).toBe(1);
+  if(process.env.LEDGERLEAF_UI_PREVIEW_DIR)await page.screenshot({path:path.join(process.env.LEDGERLEAF_UI_PREVIEW_DIR,'invoice-review.png'),fullPage:true});
+  await page.evaluate(()=>window.failNext='Not enough stock');
+  await dialog.getByRole('button',{name:'Finalize',exact:true}).click();
+  await expect(dialog.getByRole('alert')).toContainText('Not enough stock');
+  await expect(dialog.getByRole('button',{name:'Edit draft',exact:true})).toBeVisible();
+  // Reject the confirmation once; the backend must receive no further finalize request.
+  page.removeAllListeners('dialog');page.once('dialog',event=>event.dismiss());
+  await dialog.getByRole('button',{name:'Finalize',exact:true}).click();
+  expect(await page.evaluate(()=>window.requests.filter(r=>r.resource==='finalize').length)).toBe(1);
+  page.on('dialog',event=>event.accept());
+  await dialog.getByRole('button',{name:'Finalize',exact:true}).click();
+  dialog=page.getByRole('dialog',{name:'INV/001',exact:true});
+  await expect(dialog.getByRole('link',{name:'Download / print PDF ↗',exact:true})).toHaveAttribute('href','/api/document-pdf?business_id=1&id=1');
+  await expect(dialog.getByRole('button',{name:'Edit draft',exact:true})).toHaveCount(0);
+  await page.context().close();
+  console.log('PASS invoice entry focuses quantities, shows exact entered amounts, retains failed drafts and reviews server totals before confirmed finalization/printing');
+
+  page=await pageFor('Orders','ADMIN',{width:390,height:844});
+  await page.getByRole('button',{name:'+ Purchase order',exact:true}).click();
+  dialog=page.getByRole('dialog',{name:'Purchase order',exact:true});
+  await expect(dialog.getByLabel('Commercial type',{exact:true})).toHaveValue('PURCHASE_ORDER');
+  await expect(dialog.getByLabel('Document type',{exact:true})).toHaveValue('PURCHASE');
+  await dialog.getByLabel('Supplier',{exact:true}).selectOption('3');
+  await dialog.getByLabel('Add line item',{exact:true}).selectOption('7');
+  await expect(dialog.getByLabel('Notebook Unit price',{exact:true})).toHaveValue('6.00');
+  await dialog.getByRole('button',{name:'Save & review',exact:true}).click();
+  dialog=page.getByRole('dialog',{name:'Review document',exact:true});
+  await expect(dialog.getByRole('heading',{name:'Total ₹ 6.00',exact:true})).toBeVisible();
+  await page.evaluate(()=>window.minimalIssueResponse=true);
+  await dialog.getByRole('button',{name:'Issue',exact:true}).click();
+  dialog=page.getByRole('dialog',{name:'PO/001',exact:true});
+  await expect(dialog.getByRole('link',{name:'Download / print PDF ↗',exact:true})).toHaveAttribute('href','/api/commercial-pdf?business_id=1&id=1');
+  const orderBounds=await dialog.boundingBox();expect(orderBounds.x+orderBounds.width).toBeLessThanOrEqual(390);
+  await page.context().close();
+  console.log('PASS purchase order uses supplier/purchase prices and handles issue/retry response before print on mobile');
+
+
+  const readonlyDraft={id:1,status:'DRAFT',kind:'SALE',number:'',date:'2026-10-22',due_date:'2026-10-22',total:1000,party_id:3,warehouse_id:1,notes:'',lines:[{product_id:7,name:'Notebook',unit:'PCS',quantity:1000,price:1000,discount:0,amount:1000}]};
+  page=await pageFor('Billing','VIEWER',{width:1280,height:900},{documentRows:[{...readonlyDraft,party:'Test party'}],savedDocuments:{'documents:1':readonlyDraft}});
+  await expect(page.getByRole('button',{name:'+ New bill',exact:true})).toHaveCount(0);
+  await page.getByRole('button',{name:'View',exact:true}).click();
+  dialog=page.getByRole('dialog');
+  await expect(dialog.getByRole('button',{name:'Edit draft',exact:true})).toHaveCount(0);
+  await expect(dialog.getByRole('button',{name:'Finalize',exact:true})).toHaveCount(0);
+  await expect(dialog.getByRole('link',{name:'Download / print PDF ↗',exact:true})).toHaveCount(0);
+  expect(await page.evaluate(()=>window.requests.length)).toBe(0);
+  await page.context().close();
+  console.log('PASS viewer draft inspection exposes no editing, finalization or draft-print actions');
 
 } finally {await browser.close()}
