@@ -1,0 +1,10 @@
+import React,{useEffect,useState} from 'react';
+import {api} from './api';
+import {t} from './i18n';
+
+// Selection is independent of the currently visible page; saving cannot drop hidden IDs.
+export function BusinessAssignments({value,onChange,disabled}:{value:number[];onChange:(ids:number[])=>void;disabled:boolean}){
+ const[query,setQuery]=useState(''),[page,setPage]=useState(1),[rows,setRows]=useState<any[]>([]),[loading,setLoading]=useState(false),[error,setError]=useState('');
+ useEffect(()=>{let live=true;setLoading(true);setError('');api(`businesses?paged=1&page=${page}&q=${encodeURIComponent(query)}`).then(r=>{if(live)setRows(r)}).catch(e=>{if(live){setRows([]);setError(String(e))}}).finally(()=>{if(live)setLoading(false)});return()=>{live=false}},[query,page]);
+ return <fieldset disabled={disabled}><legend>Assigned businesses ({value.length}/200)</legend><label>{t('Find business')}<input value={query} maxLength={160} onChange={e=>{setQuery(e.target.value);setPage(1)}}/></label><p>Search or page through all businesses. Selections on other pages are retained. Up to 200 businesses can be assigned to one account.</p>{error&&<p role="alert">{error}</p>}<div className="assignment-list" aria-busy={loading}>{!loading&&rows.map(b=><label key={b.id}><input type="checkbox" checked={value.includes(b.id)} disabled={!value.includes(b.id)&&value.length>=200} onChange={e=>onChange(e.target.checked?[...value,b.id]:value.filter(id=>id!==b.id))}/>{b.name} · #{b.id}</label>)}{!loading&&!rows.length&&<p>No matching businesses.</p>}{loading&&<p>{t('Loading…')}</p>}</div><div className="pagination"><button type="button" disabled={loading||page===1} onClick={()=>setPage(p=>p-1)}>{t('Previous businesses')}</button><span>{page}</span><button type="button" disabled={loading||rows.length<50} onClick={()=>setPage(p=>p+1)}>{t('Next businesses')}</button></div><details><summary>Review selected business IDs ({value.length})</summary><div className="assignment-list">{value.map(id=><label key={id}><input type="checkbox" checked onChange={()=>onChange(value.filter(v=>v!==id))}/>Business #{id}</label>)}</div></details></fieldset>
+}
