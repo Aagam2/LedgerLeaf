@@ -237,3 +237,9 @@ In **Expenses**, choose **+ Record expense**. In **Stock changes**, choose **+ P
 In **Banks & periods**, the period summary displays the saved lock. **Change period lock** opens the editable date; Cancel discards it. Blank dates request reopening ordinary locked periods, subject to the server's finalized-year boundary. **Review year closing** opens the year-end date, preview and permanent-close confirmation. Changing the date invalidates its preview. These controls are administrator-only.
 
 Developers can check these dialog interactions without starting the application or opening SQLite: run `npm run build --prefix frontend`, then `npm run test:ui:offline --prefix frontend`. The latter uses an in-memory API stub with blocked browser network requests; it verifies interface behavior rather than real accounting/stock persistence.
+
+### Finding everyday and specialist tools
+
+The main menu keeps Overview, Billing, POS, Parties, Products, Expenses and Reports visible when permitted. Open **Other documents**, **Stock**, **Accounting** or **Settings** for their related tools. Help remains directly accessible. Empty groups are hidden for restricted roles. Business details and first-use steps on Overview expand when needed.
+
+In Billing, **+ New bill** starts a sale and **+ Purchase bill** starts a purchase with its supplier selector. Biller accounts retain sale-only entry. Both use the same draft/review/finalize process. Tax guidance is available inside **Tax, pricing and delivery options**.

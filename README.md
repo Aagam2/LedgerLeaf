@@ -79,3 +79,5 @@ Administrators can download an all-business, all-table Excel workbook from **Bac
 ## Source control
 
 The local repository uses `main`. Initial commit `7aa7c24` captures the existing source, documentation, tests, migrations and embedded web assets before further changes. Local executables, release artifacts, installed dependencies, Python caches, database files and `.env` files are excluded.
+
+Simplicity and familiar billing/accounting workflows are core product requirements. See [interface principles](docs/UX_PRINCIPLES.md) for the conventions guiding future features.

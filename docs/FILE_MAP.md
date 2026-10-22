@@ -319,3 +319,7 @@ Tests with `fixture`, `setupTrading`, or `gstTrading` helpers create disposable 
 ## Offline dialog verification
 
 `frontend/tests/dialogs.offline.mjs` bundles selected real React screens with an in-memory API and drives Chrome in offline mode with all browser requests blocked. It covers expense and stock posting forms, period-lock cancel/save, year-closing previews and administrator-only actions without opening a database or application server. Run through `npm run test:ui:offline --prefix frontend` after building the frontend.
+
+## Interface conventions and grouped menu
+
+`docs/UX_PRINCIPLES.md` records simplicity and familiar financial workflows as product requirements. `frontend/src/navigation.tsx` defines the grouped, role-filtered main menu. `tests/e2e/navigation.ts` opens a destination's group before navigating in full-application tests. Offline dialog checks additionally cover the grouped menu and direct purchase entry.

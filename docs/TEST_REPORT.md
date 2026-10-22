@@ -254,3 +254,13 @@ Executed checks:
 - `git diff --check` — passes for this continuation. Existing whitespace in the baseline's license notices/receipt source was retained unchanged.
 
 Verification boundaries: no database connection, application server or external service was opened. No Go test suite, database-backed browser E2E suite, smoke test or manual live accounting workflow ran in this batch. The stubbed browser checks establish interface behavior and request payloads, not financial transaction correctness. Pinned release builds, Windows/runtime, printer, full localization, specialized tax handling and other previously deferred checks remain pending.
+
+## 2026-10-22 — Simplicity and familiar workflows
+
+- Frontend TypeScript/production build passes. Existing numeric/POS unit tests pass.
+- Six offline browser scenarios pass using real React components with an in-memory API and blocked network requests. Existing expense/stock/period checks remain covered. Added checks retain all 29 menu destinations, expand groups through the shared E2E navigation helper, mark the current page, save an explicitly created purchase draft, update the new Hindi/Gujarati menu/purchase labels, and preserve sale-only biller actions on a 390-pixel screen.
+- Reviewed desktop screenshots of the actual Navigation, Dashboard and Billing components in the offline harness. Screenshots use stubbed empty data and a minimal shell; they are not evidence of live business results or a full application audit. Checked purchase-dialog/mobile bounds in the browser.
+- Full E2E discovery (`npm run test:e2e --prefix frontend -- --list`) succeeds: 42 tests across two files. Updated navigation clicks to open their group, and logo checks to expand business details. Discovery does not execute those database-backed tests.
+- Rebuilt `release/ledgerleaf-linux-dev` offline with Go 1.27.3 and the refreshed frontend. The executable was not launched. `git diff --check` passes.
+
+No `.env` file, database or service was accessed. No real posting, persistence, tax, platform or full accessibility validation was performed in this UI pass. The existing verification limitations remain in effect.

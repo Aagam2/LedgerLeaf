@@ -1,11 +1,13 @@
 // Browser interaction coverage with an in-memory API. No server or database is opened.
-import {build} from 'esbuild';
+import {build,transform} from 'esbuild';
 import {chromium, expect} from '@playwright/test';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const helper=await transform(await fs.readFile(path.join(root,'../tests/e2e/navigation.ts'),'utf8'),{loader:'ts',format:'esm'});
+const {navigate}=await import('data:text/javascript;base64,'+Buffer.from(helper.code).toString('base64'));
 const bundle = await build({
   stdin: {contents: `
     import React from 'react';
@@ -13,9 +15,19 @@ const bundle = await build({
     import {OperationsPage} from './src/operations';
     import {BanksPage} from './src/banks';
     import {RoleContext} from './src/permissions';
+    import {Navigation} from './src/navigation';
+    import {BillingPage} from './src/billing';
+    import {Dashboard} from './src/dashboard';
+    import {useLanguage,setLanguage} from './src/i18n';
+    window.setUiLanguage=setLanguage;
+    function Workspace({role}){
+      useLanguage();
+      const [page,setPage]=React.useState('Overview');
+      return <div className="shell"><aside><div className="brand">Ledgerleaf</div><Navigation role={role} hasBusiness page={page} onNavigate={setPage}/></aside><main><h1>{page}</h1>{page==='Billing'?<BillingPage businessId={1}/>:<Dashboard businessId={1} onNavigate={setPage}/>}</main></div>;
+    }
     const root=createRoot(document.getElementById('root'));
     window.renderPage=(page,role='ADMIN')=>root.render(
-      <RoleContext.Provider value={role}>{page==='Banks'?
+      <RoleContext.Provider value={role}>{page==='Workspace'?<Workspace role={role}/>:page==='Billing'?<BillingPage businessId={1}/>:page==='Banks'?
         <BanksPage businessId={1}/>:
         <OperationsPage businessId={1} page={page}/>
       }</RoleContext.Provider>);
@@ -38,6 +50,7 @@ const bundle = await build({
         if(resource==='banks')return [{code:'6001',name:'Trading bank',account_number:'1234'}];
         if(resource==='period-lock')return {closed_through:window.savedLock};
         if(resource==='year-close')return window.closedYears;
+        if(resource==='parties')return [{id:3,name:'Supplier One',kind:'SUPPLIER',credit_days:0}];
         if(resource==='products')return [{id:7,name:'Notebook',sku:'N7',kind:'PRODUCT',active:1}];
         if(resource==='warehouses')return [{id:1,name:'Main',active:1},{id:2,name:'Shop',active:1}];
         return [];
@@ -151,4 +164,50 @@ try {
   await expect(page.getByRole('button',{name:'Review year closing',exact:true})).toHaveCount(0);
   await page.context().close();
   console.log('PASS accountant sees saved period lock without administrator actions');
+
+  page=await pageFor('Workspace');
+  if(process.env.LEDGERLEAF_UI_PREVIEW_DIR){
+    await fs.mkdir(process.env.LEDGERLEAF_UI_PREVIEW_DIR,{recursive:true});
+    await page.screenshot({path:path.join(process.env.LEDGERLEAF_UI_PREVIEW_DIR,'workspace.png'),fullPage:true});
+  }
+  let menu=page.getByRole('navigation',{name:'Main menu',exact:true});
+  await expect(menu.getByRole('button',{name:'Billing',exact:true})).toBeVisible();
+  await expect(menu.locator('button')).toHaveCount(29);
+  await expect(menu.getByRole('button',{name:'Banks & periods',exact:true})).toHaveCount(0);
+  await navigate(page,'Banks & periods');
+  await expect(menu.getByRole('button',{name:'Banks & periods',exact:true})).toHaveAttribute('aria-current','page');
+  await page.getByRole('button',{name:'Open Billing',exact:true}).click();
+  await page.getByRole('button',{name:'+ Purchase bill',exact:true}).click();
+  dialog=page.getByRole('dialog',{name:'New purchase bill',exact:true});
+  await expect(dialog.getByLabel('Document type',{exact:true})).toHaveValue('PURCHASE');
+  await expect(dialog.getByLabel('Supplier',{exact:true})).toBeVisible();
+  if(process.env.LEDGERLEAF_UI_PREVIEW_DIR)await page.screenshot({path:path.join(process.env.LEDGERLEAF_UI_PREVIEW_DIR,'purchase.png'),fullPage:true});
+  await dialog.getByLabel('Supplier',{exact:true}).selectOption('3');
+  await dialog.getByLabel('Add line item',{exact:true}).selectOption('7');
+  await dialog.getByRole('button',{name:'Save draft',exact:true}).click();
+  await expect(dialog).toHaveCount(0);
+  expect(await page.evaluate(()=>window.requests.at(-1).body.kind)).toBe('PURCHASE');
+  await page.evaluate(()=>window.setUiLanguage('hi'));
+  await expect(page.getByRole('navigation',{name:'मुख्य मेनू',exact:true})).toBeVisible();
+  await expect(page.getByRole('button',{name:'+ खरीद बिल',exact:true})).toBeVisible();
+  await page.evaluate(()=>window.setUiLanguage('gu'));
+  await expect(page.getByRole('navigation',{name:'મુખ્ય મેનુ',exact:true})).toBeVisible();
+  await expect(page.getByRole('button',{name:'+ ખરીદી બિલ',exact:true})).toBeVisible();
+  await page.context().close();
+  console.log('PASS grouped navigation keeps all 29 destinations and opens an explicit purchase draft');
+
+  page=await pageFor('Workspace','BILLER',{width:390,height:844});
+  menu=page.getByRole('navigation',{name:'Main menu',exact:true});
+  await expect(menu.getByRole('button',{name:'Billing',exact:true})).toBeVisible();
+  await expect(menu.locator('button').filter({hasText:'Backup & restore'})).toHaveCount(0);
+  await expect(menu.locator('summary').filter({hasText:/^Accounting$/})).toHaveCount(0);
+  await menu.getByRole('button',{name:'Billing',exact:true}).click();
+  await expect(page.getByRole('button',{name:'+ Purchase bill',exact:true})).toHaveCount(0);
+  await page.getByRole('button',{name:'+ New bill',exact:true}).click();
+  await expect(page.getByRole('dialog').getByLabel('Document type',{exact:true})).toHaveValue('SALE');
+  const mobileBounds=await page.getByRole('dialog').boundingBox();
+  expect(mobileBounds.x+mobileBounds.width).toBeLessThanOrEqual(390);
+  await page.context().close();
+  console.log('PASS mobile biller menu and bill actions retain role restrictions');
+
 } finally {await browser.close()}

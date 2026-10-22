@@ -96,3 +96,20 @@ label>input[type=checkbox],label>input[type=radio]{flex:0 0 auto;margin:0}
 @media(max-width:760px){.help-topics nav{max-height:220px;overflow-y:auto;overscroll-behavior:contain}}
 
 .assignment-list{max-height:220px;overflow:auto;display:grid;gap:6px;padding:8px 0}.assignment-list label{display:flex;align-items:center;gap:8px;margin:0}.assignment-list input[type=checkbox]{width:auto}.record-form fieldset{grid-column:1/-1;min-width:0}
+
+/* Keep daily tasks visible; group less frequent tools by their familiar purpose. */
+.app-navigation{display:block;padding-right:4px;max-height:none}
+.app-navigation .navigation-links{display:grid;gap:3px}
+.app-navigation button{width:100%;text-align:left}
+.navigation-caption{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;padding:0 11px 8px}
+.navigation-group{border-top:1px solid var(--line);margin-top:10px;padding-top:5px}
+.navigation-group>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);padding:10px 11px;border-radius:7px}
+.navigation-group>summary:hover{background:var(--surface)}
+.navigation-group>summary.has-current-page{color:var(--accent)}
+.navigation-group>summary:focus-visible,.business-profile>summary:focus-visible,.workflow-help>summary:focus-visible{outline:3px solid #75aa87;outline-offset:2px}
+.navigation-help{border-top:1px solid var(--line);padding-top:8px;margin-top:10px}
+.business-profile>summary,.workflow-help>summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--ink)}
+.business-profile[open]>summary{margin-bottom:20px}
+.workflow-help{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+.workflow-help ol{list-style:decimal;padding-left:22px;color:var(--muted);font-size:13px;line-height:1.8}
+@media(max-width:760px){.app-navigation{display:block;max-height:240px;overflow-y:auto}.app-navigation .navigation-everyday>.navigation-links{grid-template-columns:repeat(2,minmax(0,1fr))}.navigation-group .navigation-links{padding-left:8px}}
