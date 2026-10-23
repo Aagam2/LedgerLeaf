@@ -74,6 +74,6 @@ manifest = {
 PY
 (cd "$PACKAGE" && sha256sum ledgerleaf START-HERE.md READINESS.md manifest.json > SHA256SUMS)
 tar --sort=name --mtime="@$SOURCE_DATE_EPOCH" --owner=0 --group=0 --numeric-owner -czf "$ARCHIVE" -C "$STAGE" "$NAME"
-sha256sum "$ARCHIVE" > "$ARCHIVE.sha256"
+(cd release && sha256sum "$NAME.tar.gz" > "$NAME.tar.gz.sha256")
 echo "Verified candidate: $ARCHIVE"
 echo 'Target-machine acceptance and independent security/dependency review remain release gates.'

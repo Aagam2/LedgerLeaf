@@ -1,6 +1,8 @@
 # Compatibility investigation
 
-Pinned build toolchain: Go 1.20.14. Go 1.20 is the last Go release supporting Windows 7 and Windows 8 (https://go.dev/doc/go1.20). The host's Go 1.27.1 is not used for releases.
+Current Linux candidate: Go 1.27.3, Linux amd64, statically linked with native SQLite extension loading and the system DNS resolver excluded. RC3 passed the full automated workflow/recovery suites and extracted-package checks on this host. It is not Windows runtime evidence; see [READINESS.md](READINESS.md).
+
+Legacy Windows toolchain: Go 1.20.14. The historical Windows 7/8 compatibility decision uses Go 1.20 (https://go.dev/doc/go1.20); it does not pin the current Linux release to that old compiler. All legacy Windows runtime and browser qualification below remains pending.
 
 SQLite: github.com/mattn/go-sqlite3 v1.14.22, requiring Go 1.19 (https://raw.githubusercontent.com/mattn/go-sqlite3/v1.14.22/go.mod). SQLite's amalgamation is compiled into each executable. CGO and MinGW are build-time requirements only. The cached modernc.org/sqlite v1.28.0 pure-Go driver has Windows amd64 and arm64 implementations but no Windows 386 implementation, so it cannot meet the complete target matrix. Verify the PE import table after every release.
 

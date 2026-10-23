@@ -2,6 +2,8 @@
 
 Updated 2026-10-23. **Production hardening targets the everyday billing workflow.** The deliverable is a Linux release candidate; final production approval still depends on the release checks below. Completing every feature in the original specification is outside this release's scope.
 
+Latest verified deliverable: **0.1.0-rc.3 Linux amd64**, application revision `d431c3c`. Full tagged Go race tests, vet, 12 frontend tests, 44 browser workflows and recovery smoke pass. Extracted-package checksums, minimal-environment startup and twelve immediate SIGTERM/restart trials also pass. See TEST_REPORT.md for evidence. Windows and SQLCipher working-database builds have not been refreshed or qualified by this run.
+
 ## Implemented core workflows
 
 Customers/suppliers and products; sale and purchase invoices; saved-draft review and confirmed finalization; purchase orders, quotations and proformas; receipts and dispatches; stock movements; payments and returns; accounting and reports; PDF-first downloads with secondary PNG pages; users/business access; backup and restore.

@@ -2,6 +2,8 @@
 
 > Current release scope (2026-10-23): simple everyday invoices, purchase orders, payments, stock, reports, backups and PDF-first/PNG exports. Linux production hardening includes startup integrity checks, safety snapshots before upgrades, graceful shutdown and verified packaging. See [readiness and release gates](docs/READINESS.md), [the operator guide](docs/OPERATIONS.md) and [build instructions](docs/building.md).
 
+Latest verified Linux package: `release/Ledgerleaf-0.1.0-rc.3-linux-amd64.tar.gz` (application revision `d431c3c`). Extract it, verify `SHA256SUMS`, then run `./ledgerleaf`. Locally, `release/ledgerleaf-linux` and `release/ledgerleaf-linux-dev` contain that same executable. All 44 browser workflows, 12 frontend tests, the full Go race suite, vet and recovery smoke pass. This is a release candidate pending the remaining acceptance/security gates; it does not qualify the older Windows or SQLCipher artifacts.
+
 
 An original offline desktop business application built with Go, React, TypeScript, Tailwind and embedded SQLite. The current target is a Linux release candidate for common daily work. Specialized features in the original specification are deferred; production acceptance gates are recorded explicitly.
 
@@ -17,7 +19,7 @@ For the latest Linux trial, use the development executable:
 ./release/ledgerleaf-linux-dev --data-dir ./manual-test-data
 ```
 
-It opens your browser and keeps test records in a separate installation. No build tools or internet connection are needed to run it. Keep its terminal open while using the application. The standard/encrypted Linux and Windows artifacts predate the latest changes; pinned release rebuilding remains pending. Build-from-source instructions are in [building.md](docs/building.md).
+It opens your browser and keeps test records in a separate installation. No build tools or internet connection are needed to run it. Keep its terminal open while using the application. The standard Linux alias now matches RC3; encrypted Linux and Windows artifacts predate the latest changes and remain separately unqualified. Build-from-source instructions are in [building.md](docs/building.md).
 
 ## Start testing
 
@@ -67,7 +69,7 @@ Documentation: [architecture](docs/architecture.md), [database](docs/database.md
 See [test results and verification limits](docs/TEST_REPORT.md). Run the complete Linux verification suite with installed dependencies:
 
 ```sh
-GO_BIN=/path/to/go1.20.14/bin/go GOCACHE=/tmp/billbook-go-cache ./scripts/test-application.sh
+GO_BIN=/snap/go/current/bin/go GOCACHE=/tmp/ledgerleaf-review-go-cache ./scripts/test-application.sh
 ```
 
 Tests use disposable SQLite databases, exercise the real executable and browser, and check financial rollback, concurrent writes, PDF content and crash/restart persistence.

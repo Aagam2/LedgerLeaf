@@ -2,6 +2,27 @@
 
 Updated 2026-10-23. Results describe Linux verification against disposable application databases. They do not certify general production readiness or Windows runtime compatibility. Newer dated entries supersede older environment/scope notes.
 
+## Final Linux candidate — 2026-10-23
+
+**RC3 at application revision `d431c3c` passed the complete release pipeline.** The archive is `release/Ledgerleaf-0.1.0-rc.3-linux-amd64.tar.gz`, built with Go 1.27.3 and `netgo,sqlite_omit_load_extension`. The standard working database is plaintext; encrypted backup downloads are supported.
+
+| Check | Result |
+| --- | --- |
+| Offline Go module checksum verification / installed frontend versions | Pass |
+| Frontend build and embedded-asset consistency | Pass |
+| Frontend unit tests | 12/12 pass |
+| Full Go suite with race detection and release tags | Pass; server package 136.852 seconds |
+| Go vet | Pass |
+| Static executable / ELF dynamic-loader check | Pass; no linker warnings |
+| Browser workflows against the actual packaged executable | 44/44 pass in 1.4 minutes |
+| Compiled lifecycle/recovery smoke | Pass, including five immediate-readiness SIGTERM trials |
+| Extracted archive checksums and minimal-environment startup | Pass |
+| Extracted executable immediate shutdown/restart trials | 12/12 clean exits; final SQLite integrity passes |
+
+Candidate logs and manifest: `release/linux-candidate-gxlO1p/Ledgerleaf-0.1.0-rc.3-linux-amd64/verification/` and its parent manifest. Extracted-install evidence: `release/rc3-install-acceptance.log`. Binary SHA-256: `3dfbe4468f1cf7f65bcf6de53ff1f729356ddac137d7c8fc0902c7b51fe007f4`. Local `release/ledgerleaf-linux` and `release/ledgerleaf-linux-dev` are copies of this tested executable. Older Windows and working-database-encrypted binaries remain separate and were not refreshed.
+
+The installation check extracted the package into a temporary folder, verified every packaged checksum, cleared inherited environment settings, checked that `--version` creates no data, then started/restarted the application using a fresh default configuration directory. It is useful portability evidence, not a clean-machine/VM or real power-loss certification. Independent security/dependency review, accessibility, target-machine/storage acceptance and Windows qualification remain release gates. `.env` files and existing business records were not accessed. Niche specification features are deferred by request.
+
 ## Production-hardening baseline — 2026-10-23
 
 The RC2 run at revision `a10bdb2` passed all 44 browser workflows, 12 frontend tests, the full tagged Go race suite, vet, checksum/dependency checks, ELF loader inspection and lifecycle smoke, without linker warnings. Evidence: `release/linux-candidate-glBogt/Ledgerleaf-0.1.0-rc.2-linux-amd64/verification/`. A separate extracted-archive/minimal-environment check then exposed a readiness/SIGTERM race: the launch URL was printed just before signal registration, and 1 of 12 immediate-termination trials exited with signal 15 instead of draining gracefully. RC2 is superseded. Signal registration now precedes readiness, and smoke verification includes five immediate-readiness SIGTERM trials before the usual financial/recovery scenarios. Final candidate results follow after that verification.

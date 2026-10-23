@@ -4,6 +4,8 @@ Updated 2026-10-23. **Linux release-candidate hardening for common daily workflo
 
 ## Production hardening — 2026-10-23
 
+**Final runnable candidate:** `release/Ledgerleaf-0.1.0-rc.3-linux-amd64.tar.gz`, application revision `d431c3c`, Go 1.27.3. The same tested executable is copied to `release/ledgerleaf-linux` and `release/ledgerleaf-linux-dev`. Full tagged race tests, vet, 12 frontend cases, 44 browser workflows, recovery smoke, extracted-archive checksums and twelve immediate startup/shutdown trials pass. A startup signal-registration race discovered in RC2 was fixed before RC3. See the top of TEST_REPORT.md for evidence and limits. These results supersede the older runnable-artifact notes below.
+
 This section supersedes older scope and artifact notes below. The common release scope is invoices, purchase orders, payments, stock, reports, backups and PDF-first/PNG exports with simple entry. Dedicated sales orders, specialized GST/valuation, full translation and other niche extensions are not required for this release.
 
 Implemented startup integrity checks; standalone private snapshots before schema upgrades including committed WAL data; cancellation when a safety snapshot cannot be saved; snapshot retention on migration failure; encrypted snapshot preservation in keyed builds; private/fsynced plain exports; SIGTERM shutdown; `--version`; frontend builds without `.env` loading; and offline Linux candidate packaging with test logs, checksums, build metadata and an operator guide. Candidate builds disable native SQLite extension loading and system DNS, and reject a dynamic-loader dependency.
