@@ -1,9 +1,9 @@
 # Ledgerleaf
 
-> Latest development batch (2026-10-22): use `./release/ledgerleaf-linux-dev --data-dir ./manual-test-data` with fresh test data for the new goods/bank dialogs, named-bank expenses and login/startup fixes. The latest local development build uses Go 1.27.3. Older release binaries are retained pending pinned-toolchain rebuilding. See [implementation status](docs/IMPLEMENTATION_STATUS.md) and [test results](docs/TEST_REPORT.md).
+> Current release scope (2026-10-23): simple everyday invoices, purchase orders, payments, stock, reports, backups and PDF-first/PNG exports. Linux production hardening includes startup integrity checks, safety snapshots before upgrades, graceful shutdown and verified packaging. See [readiness and release gates](docs/READINESS.md), [the operator guide](docs/OPERATIONS.md) and [build instructions](docs/building.md).
 
 
-An original offline desktop business application built with Go, React, TypeScript, Tailwind and embedded SQLite. This is an **incomplete development build**, not the complete production system described in the supplied specification.
+An original offline desktop business application built with Go, React, TypeScript, Tailwind and embedded SQLite. The current target is a Linux release candidate for common daily work. Specialized features in the original specification are deferred; production acceptance gates are recorded explicitly.
 
 Working features include multiple businesses; products, parties and warehouses; GST and non-GST sales/purchases; partial returns; POS with held bills and split payments; commercial documents; partial purchase-order goods receipts and invoice matching; inventory; accounting and bank reconciliation; financial reports and CSV/XLSX/PDF exports; master imports; verified backup/restore and automatic backup retention; local users with business assignments; offline administrator recovery; rotating logs; alternate units; business logos/product images; and product-sales/HSN summaries. All business data comes from SQLite. No demo transactions are inserted.
 
@@ -52,7 +52,7 @@ Development host:
 
 ## Build and verification
 
-Requires Go **1.20.14**, Node 22/npm, and MinGW-w64 x86/x64 compilers on the build machine. Chrome is required for browser tests. Dependencies are pinned; installation needs internet once, but the resulting application does not.
+Linux candidate packaging uses Go **1.27.3**, Node/npm, GCC and Chrome for browser tests. Legacy Windows builds use Go **1.20.14** and MinGW-w64 x86/x64. Dependencies are pinned and must be installed beforehand; candidate packaging downloads nothing and the resulting application needs no internet connection.
 
 ```sh
 GO_BIN=/path/to/go1.20.14/bin/go GOCACHE=/tmp/billbook-go-cache ./scripts/build-windows.sh

@@ -24,6 +24,11 @@ import (
 	"time"
 )
 
+// Set by release builds; development builds remain identifiable.
+var version = "dev"
+var revision = "unknown"
+var builtAt = "unknown"
+
 func main() {
 	if e := run(); e != nil {
 		fmt.Fprintln(os.Stderr, "Ledgerleaf:", e)
@@ -33,6 +38,7 @@ func main() {
 func run() error {
 	data := flag.String("data-dir", "", "Optional portable data directory")
 	noBrowser := flag.Bool("no-browser", false, "Do not open a browser automatically")
+	showVersion := flag.Bool("version", false, "Show version and build information without opening data")
 	recoverAdmin := flag.String("recover-admin", "", "Reset an existing administrator password offline; requires --data-dir and a stopped application")
 	restoreBackup := flag.String("restore-backup", "", "Offline restore from a verified plaintext backup; requires --data-dir and --confirm-restore")
 	confirmRestore := flag.Bool("confirm-restore", false, "Confirm replacement of all businesses and users from the backup")
@@ -40,6 +46,10 @@ func run() error {
 	databasePasswordStdin := flag.Bool("database-password-stdin", false, "Unlock/create an encrypted working database with one password line on standard input (SQLCipher build)")
 	encryptDatabase := flag.Bool("encrypt-database", false, "Convert an existing stopped plaintext installation to SQLCipher; requires --data-dir and --database-password-stdin; preserves plaintext original")
 	flag.Parse()
+	if *showVersion {
+		fmt.Printf("Ledgerleaf %s (revision %s; built %s; %s/%s)\n", version, revision, builtAt, runtime.GOOS, runtime.GOARCH)
+		return nil
+	}
 	if *encryptDatabase && (!*databasePasswordStdin || *data == "" || *restoreBackup != "" || *recoverAdmin != "") {
 		return fmt.Errorf("encryption conversion requires explicit --data-dir and --database-password-stdin, without recovery/restore")
 	}
@@ -202,7 +212,7 @@ func run() error {
 		}
 	}
 	signals := make(chan os.Signal, 1)
-	signal.Notify(signals, os.Interrupt)
+	signal.Notify(signals, shutdownSignals()...)
 	defer signal.Stop(signals)
 	select {
 	case <-done:

@@ -50,8 +50,22 @@ func OpenEncrypted(path, password string) (*sql.DB, error) {
 			return nil, fmt.Errorf("database encryption is not active")
 		}
 	}
+	// Check before applying schema changes. Never try to repair a damaged ledger
+	// automatically: recovery must preserve the original files.
+	if err = checkIntegrity(db); err != nil {
+		db.Close()
+		return nil, err
+	}
+	snapshot, err := preserveBeforeUpgrade(db, abs, password)
+	if err != nil {
+		db.Close()
+		return nil, err
+	}
 	if err = migrate(db); err != nil {
 		db.Close()
+		if snapshot != "" {
+			return nil, fmt.Errorf("%w; pre-upgrade snapshot retained at %s", err, snapshot)
+		}
 		return nil, err
 	}
 	return db, nil

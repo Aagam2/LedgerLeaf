@@ -1,6 +1,21 @@
 # Building and testing
 
-Pin Go 1.20.14 for every release. Development dependencies: Node 22/npm, GCC, MinGW-w64 x86/x64 GCC and binutils, and Chrome for browser E2E. Go dependencies: go-sqlite3 v1.14.22 and gofpdf v1.16.2 (checksums in go.sum). Font: embedded DejaVu Sans, license in internal/printing/FONT_LICENSE. UI dependencies are pinned in package-lock.json. The build uses no live business service or existing database.
+The Linux release-candidate path uses Go 1.27.3. Legacy Windows builds separately pin Go 1.20.14; that legacy compiler is not the production Linux compiler. Development dependencies: Node/npm, GCC, MinGW-w64 x86/x64 GCC and binutils for Windows, and Chrome for browser E2E. Go dependencies: go-sqlite3 v1.14.22 and gofpdf v1.16.2 (checksums in go.sum). Font: embedded DejaVu Sans, license in internal/printing/FONT_LICENSE. UI dependencies are pinned in package-lock.json. Verification uses disposable app databases and loopback; it never opens existing business data. Frontend builds explicitly disable `.env` loading.
+
+## Linux release candidate
+
+With dependencies already installed, commit the source and embedded UI, then run:
+
+```sh
+GO_BIN=/snap/go/current/bin/go GOCACHE=/tmp/ledgerleaf-review-go-cache \
+  VERSION=0.1.0-rc.1 ./scripts/release-linux.sh
+```
+
+The script operates offline except for app-only loopback tests. It runs frontend compilation/unit tests, all Go tests with race detection, vet, the entire browser suite against the packaged executable, and the lifecycle/recovery smoke test. A static native executable, operator guide, readiness assessment, manifest, SHA-256 checksums and verification logs are archived under `release/`. An error stops packaging; logs remain under `release/linux-candidate-*` for diagnosis. Reusing an existing archive name is rejected. `EXPECTED_GO_VERSION` may be changed only after independently qualifying a new compiler. The current script packages standard SQLite, not a SQLCipher working database. The application needs no build tools or network at runtime.
+
+Passing this automation creates a release candidate. Clean-machine acceptance and the remaining gates in [READINESS.md](READINESS.md) are still required for production approval. Windows runtime claims remain separate.
+
+## Legacy Windows builds
 
 On Linux:
 

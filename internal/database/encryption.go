@@ -38,8 +38,10 @@ func Export(db *sql.DB, path, password string) error {
 		if password != "" {
 			return errors.New("this build does not support SQLCipher encryption")
 		}
-		_, e := db.Exec("VACUUM INTO ?", path)
-		return e
+		if _, e := db.Exec("VACUUM INTO ?", path); e != nil {
+			return e
+		}
+		return syncExport(path)
 	}
 	ctx := context.Background()
 	conn, e := db.Conn(ctx)
@@ -80,7 +82,11 @@ func Export(db *sql.DB, path, password string) error {
 			return errors.New("export encryption was not activated")
 		}
 	}
-	if e = os.Chmod(path, 0600); e != nil {
+	return syncExport(path)
+}
+
+func syncExport(path string) error {
+	if e := os.Chmod(path, 0600); e != nil {
 		return e
 	}
 	file, e := os.OpenFile(path, os.O_RDWR, 0600)

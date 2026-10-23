@@ -3,6 +3,7 @@ Python is a development test dependency, never a runtime dependency of BillBook.
 """
 import http.cookiejar
 import json
+import os
 import pathlib
 import queue
 import sqlite3
@@ -12,7 +13,7 @@ import threading
 import urllib.error
 import urllib.request
 
-BINARY = pathlib.Path(__file__).resolve().parents[1] / 'release' / 'ledgerleaf-linux'
+BINARY = pathlib.Path(os.environ.get('LEDGERLEAF_TEST_BINARY') or pathlib.Path(__file__).resolve().parents[1] / 'release' / 'ledgerleaf-linux').resolve()
 
 
 def start(data):
@@ -59,6 +60,8 @@ def start(data):
 
 
 def main():
+    info = subprocess.run([str(BINARY), '--version'], capture_output=True, text=True, timeout=10)
+    assert info.returncode == 0 and info.stdout.startswith('Ledgerleaf '), info.stderr
     with tempfile.TemporaryDirectory(prefix='ledgerleaf-smoke-') as data:
         process = None
         try:
@@ -120,6 +123,13 @@ def main():
 
             process, request, _ = start(data)
             assert json.loads(request('/api/businesses'))[0]['name'] == 'Smoke business'
+            # Service managers terminate Unix processes with SIGTERM. This must
+            # drain requests and release the instance lock just like UI Exit.
+            if os.name != 'nt':
+                process.terminate()
+                assert process.wait(timeout=20) == 0
+                process, request, _ = start(data)
+                assert json.loads(request('/api/documents?business_id=1'))[0]['paid'] == 5000
             request('/api/auth/users', {'username': 'owner', 'password': 'Original-Password-123!', 'role': 'ADMIN', 'active': 1})
             locked = subprocess.run([str(BINARY), '--data-dir', data, '--recover-admin', 'owner'], capture_output=True, text=True, timeout=10)
             assert locked.returncode != 0 and 'another instance' in locked.stderr
