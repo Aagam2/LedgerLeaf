@@ -6,6 +6,7 @@ import json
 import os
 import pathlib
 import queue
+import selectors
 import sqlite3
 import subprocess
 import tempfile
@@ -62,6 +63,28 @@ def start(data):
 def main():
     info = subprocess.run([str(BINARY), '--version'], capture_output=True, text=True, timeout=10)
     assert info.returncode == 0 and info.stdout.startswith('Ledgerleaf '), info.stderr
+    if os.name != 'nt':
+        # Do not make HTTP requests first: that would hide a readiness/signal
+        # registration race. Terminate as soon as the launch link is published.
+        for _ in range(5):
+            with tempfile.TemporaryDirectory(prefix='ledgerleaf-early-shutdown-') as directory:
+                early = subprocess.Popen([str(BINARY), '--no-browser', '--data-dir', directory], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                try:
+                    with selectors.DefaultSelector() as ready:
+                        ready.register(early.stdout, selectors.EVENT_READ)
+                        output = b''
+                        while b'#launch=' not in output:
+                            assert ready.select(20), 'Application did not publish readiness'
+                            chunk = os.read(early.stdout.fileno(), 8192)
+                            assert chunk, early.stderr.read().decode()
+                            output += chunk
+                    early.terminate()
+                    assert early.wait(timeout=20) == 0, 'Immediate SIGTERM did not shut down gracefully'
+                    assert 'stopped' in (pathlib.Path(directory) / 'logs/application.log').read_text()
+                finally:
+                    if early.poll() is None:
+                        early.kill()
+                        early.wait(timeout=10)
     with tempfile.TemporaryDirectory(prefix='ledgerleaf-smoke-') as data:
         process = None
         try:
@@ -184,7 +207,7 @@ def main():
             if process and process.poll() is None:
                 process.kill()
                 process.wait(timeout=10)
-    print('PASS: embedded UI/resources, local session, full sale/partial payment, duplicate instance rejection, crash recovery, token rotation, PDF, SQLite integrity, balanced ledgers, graceful restart, offline administrator recovery, scheduled backup on launch, encrypted offline CLI restore with wrong-password rejection and original-file preservation')
+    print('PASS: immediate-readiness SIGTERM, embedded UI/resources, local session, full sale/partial payment, duplicate instance rejection, crash recovery, token rotation, PDF, SQLite integrity, balanced ledgers, graceful restart, offline administrator recovery, scheduled backup on launch, encrypted offline CLI restore with wrong-password rejection and original-file preservation')
 
 
 if __name__ == '__main__':

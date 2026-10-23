@@ -200,6 +200,11 @@ func run() error {
 	}()
 	defer func() { stopBackups(); <-backupDone }()
 	srv := &http.Server{Handler: app, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 30 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16384, ErrorLog: logger}
+	// Install before publishing readiness: a supervisor may terminate the app
+	// immediately after seeing its launch URL.
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, shutdownSignals()...)
+	defer signal.Stop(signals)
 	errs := make(chan error, 1)
 	go func() { errs <- srv.Serve(listener) }()
 	url := "http://" + listener.Addr().String() + "/#launch=" + app.Token
@@ -211,9 +216,6 @@ func run() error {
 			fmt.Println("Open the launch link above in your browser.")
 		}
 	}
-	signals := make(chan os.Signal, 1)
-	signal.Notify(signals, shutdownSignals()...)
-	defer signal.Stop(signals)
 	select {
 	case <-done:
 	case <-signals:

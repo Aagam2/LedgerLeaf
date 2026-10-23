@@ -4,7 +4,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 GO_BIN=${GO_BIN:-go}
-VERSION=${VERSION:-0.1.0-rc.2}
+VERSION=${VERSION:-0.1.0-rc.3}
 EXPECTED_GO_VERSION=${EXPECTED_GO_VERSION:-go1.27.3}
 [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$ ]] || { echo 'Invalid VERSION' >&2; exit 1; }
 [[ "$("$GO_BIN" env GOVERSION)" == "$EXPECTED_GO_VERSION" ]] || { echo "Requires $EXPECTED_GO_VERSION; set EXPECTED_GO_VERSION only after qualifying another compiler." >&2; exit 1; }
