@@ -1,6 +1,16 @@
 # Implementation status
 
-Updated 2026-10-23. **Incomplete development build; not production-ready.** This is a working, tested subset of the supplied specification. The full application has not been completed.
+Updated 2026-10-23. **Linux release-candidate hardening for common daily workflows.** Specialized features from the original specification are deferred by request. General production approval and Windows runtime qualification remain separate release gates.
+
+## Production hardening — 2026-10-23
+
+This section supersedes older scope and artifact notes below. The common release scope is invoices, purchase orders, payments, stock, reports, backups and PDF-first/PNG exports with simple entry. Dedicated sales orders, specialized GST/valuation, full translation and other niche extensions are not required for this release.
+
+Implemented startup integrity checks; standalone private snapshots before schema upgrades including committed WAL data; cancellation when a safety snapshot cannot be saved; snapshot retention on migration failure; encrypted snapshot preservation in keyed builds; private/fsynced plain exports; SIGTERM shutdown; `--version`; frontend builds without `.env` loading; and offline Linux candidate packaging with test logs, checksums, build metadata and an operator guide. Candidate builds disable native SQLite extension loading and system DNS, and reject a dynamic-loader dependency.
+
+The first packaging run passed the full Go race suite, vet, frontend build/unit tests, all 44 browser workflows and executable lifecycle/recovery smoke. It exposed static-link warnings for extension loading/system DNS; those unused capabilities were then removed for the next candidate. Exact final candidate results are recorded at the top of TEST_REPORT.md after verification. Existing older development/Windows/encrypted artifacts do not acquire these changes automatically.
+
+See [READINESS.md](READINESS.md) for the remaining release gates and [OPERATIONS.md](OPERATIONS.md) for setup, backup, upgrade and recovery. Automatic daily backups remain opt-in and must be enabled during installation. Independent dependency/security review, clean-machine acceptance, accessibility, actual power-loss and target-hardware checks remain outstanding; Linux automation does not qualify Windows.
 
 ## Current remaining work — 2026-10-23
 
@@ -10,7 +20,7 @@ This summary supersedes older continuation notes below; dated sections retain im
 - **Current runnable build:** `release/ledgerleaf-linux-dev` contains the latest daily-entry and PDF/PNG changes, built with Go 1.27.3 and exercised with disposable SQLite databases on Linux. Standard/encrypted release binaries are older; pinned Go 1.20.14 and SQLCipher release rebuilding remains pending.
 - **Implementation gaps:** dedicated customer sales orders (purchase orders/quotations exist); specialized GST/place-of-supply/valuation and advance-tax handling; additional accounting correction workflows; automatic startup repair; browser compatibility assistance.
 - **Usability/localization:** receipt/dispatch creation, receipt matching/correction, dispatch allocation/history and consolidation now use dialogs. Ordinary expense/stock operations and period/year-close controls now use dialogs (see the latest continuation below). Other specialist screens still need a consistency review. Full interface translation, advanced messages and PDF complex-script support are incomplete. New user-management dialogs and searchable business assignments are implemented; they are no longer pending features.
-- **Final-stage verification (deferred by request):** Windows runtime and encryption packaging, physical printers, complete accessibility/security/compliance reviews, clean-machine/offline installation, 2 GB hardware benchmarks, migration interruption/power-loss checks, and support/release readiness.
+- **Final-stage verification:** Windows runtime and encryption packaging, physical printers, complete accessibility/security/compliance reviews, clean-machine/offline installation, 2 GB hardware benchmarks, migration interruption/power-loss checks, and support/release readiness. The current request prioritizes production hardening; earlier deferrals do not waive release checks.
 - **Scope boundaries:** GSTR-1/GSTR-3B exports prepare data rather than file portal-ready returns. The all-table Excel workbook is an unencrypted inspection export, not a restorable SQLite backup. Each restricted account supports up to 200 assigned businesses, selected from the entire directory.
 
 See [application readiness](READINESS.md) for the completion assessment. Use TEST_REPORT.md for exact verification results and TESTING_GUIDE.md for startup and manual workflows. The application remains an incomplete Linux trial build, not a completed production release.

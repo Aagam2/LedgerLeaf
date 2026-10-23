@@ -8,10 +8,10 @@ With dependencies already installed, commit the source and embedded UI, then run
 
 ```sh
 GO_BIN=/snap/go/current/bin/go GOCACHE=/tmp/ledgerleaf-review-go-cache \
-  VERSION=0.1.0-rc.1 ./scripts/release-linux.sh
+  VERSION=0.1.0-rc.2 ./scripts/release-linux.sh
 ```
 
-The script operates offline except for app-only loopback tests. It runs frontend compilation/unit tests, all Go tests with race detection, vet, the entire browser suite against the packaged executable, and the lifecycle/recovery smoke test. A static native executable, operator guide, readiness assessment, manifest, SHA-256 checksums and verification logs are archived under `release/`. An error stops packaging; logs remain under `release/linux-candidate-*` for diagnosis. Reusing an existing archive name is rejected. `EXPECTED_GO_VERSION` may be changed only after independently qualifying a new compiler. The current script packages standard SQLite, not a SQLCipher working database. The application needs no build tools or network at runtime.
+The script operates offline except for app-only loopback tests. It runs frontend compilation/unit tests, all Go tests with race detection, vet, the entire browser suite against the packaged executable, and the lifecycle/recovery smoke test. Go tests and the executable use `netgo,sqlite_omit_load_extension`: unused native extension loading and the system DNS resolver are excluded. ELF inspection rejects an executable requiring a dynamic loader. A static native executable, operator guide, readiness assessment, manifest, SHA-256 checksums and verification logs are archived under `release/`. An error stops packaging; logs remain under `release/linux-candidate-*` for diagnosis. Reusing an existing archive name is rejected. `EXPECTED_GO_VERSION` may be changed only after independently qualifying a new compiler. The current script packages standard SQLite, not a SQLCipher working database. The application needs no build tools or network at runtime.
 
 Passing this automation creates a release candidate. Clean-machine acceptance and the remaining gates in [READINESS.md](READINESS.md) are still required for production approval. Windows runtime claims remain separate.
 

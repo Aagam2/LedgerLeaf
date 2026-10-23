@@ -1,6 +1,12 @@
 # Application test report
 
-Updated 2026-10-19. The application remains an incomplete development build. These checks do not certify production readiness or Windows runtime compatibility.
+Updated 2026-10-23. Results describe Linux verification against disposable application databases. They do not certify general production readiness or Windows runtime compatibility. Newer dated entries supersede older environment/scope notes.
+
+## Production-hardening baseline — 2026-10-23
+
+At implementation revision `788aa21`, `scripts/release-linux.sh` completed successfully: frontend build/unit tests, the complete standard Go suite with race detection, Go vet, all **44/44 browser workflows**, and compiled lifecycle/recovery smoke. The smoke now checks `--version` and graceful SIGTERM/restart alongside crash persistence, ledger reconciliation, administrator recovery, scheduled backups and encrypted-backup offline restore. All data was disposable; no `.env` files or unrelated services were accessed. Evidence: `release/linux-candidate-wGgf3A/Ledgerleaf-0.1.0-rc.1-linux-amd64/verification/`.
+
+New database tests verify committed WAL data in pre-upgrade snapshots, original schema retention after snapshot failure, migration rollback/snapshot retention, and private snapshot permissions. The keyed snapshot test is skipped without SQLCipher. The baseline executable linked statically but produced glibc warnings from optional SQLite extension loading/system DNS. The subsequent candidate explicitly removes those capabilities and adds a build-tagged test proving that SQLite native extension loading is absent. Final candidate evidence is recorded separately after that run; RC1 is superseded for distribution.
 
 ## Everyday-use Linux batch — 2026-10-19
 

@@ -17,7 +17,7 @@ The 2026-10-23 standard Go suite passed with race detection, and the final compl
 
 ## Remaining release checks
 
-The Linux candidate build uses installed Go 1.27.3 and installed, locked frontend dependencies. `scripts/release-linux.sh` builds a static executable, runs the full automated verification against that executable, and packages version/revision metadata, checksums, verification logs and an operator guide. It refuses uncommitted source, stale embedded assets and failed tests. It downloads no dependencies and does not read `.env` files.
+The Linux candidate build uses installed Go 1.27.3 and installed, locked frontend dependencies. `scripts/release-linux.sh` builds a static executable with native SQLite extension loading and system DNS resolution excluded, checks that no dynamic loader is required, runs the full automated verification against that executable, and packages version/revision metadata, checksums, verification logs and an operator guide. It refuses uncommitted source, stale embedded assets and failed tests. It downloads no dependencies and does not read `.env` files.
 
 Before general production distribution: clean-machine/offline acceptance; independent security and dependency review; keyboard/accessibility review; target-hardware performance; and realistic power-loss/filesystem testing. Automated crash recovery is tested but cannot simulate all hardware/storage failure modes. Review invoice/tax behavior for the business's actual requirements; GST preparation is not return filing.
 

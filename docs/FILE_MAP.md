@@ -1,6 +1,8 @@
 # Project file map
 
-Updated 2026-10-22. Start with [TESTING_GUIDE.md](TESTING_GUIDE.md) to run and test the application. This inventory describes project-owned source, tests, configuration, documentation and assets; installed dependencies and generated build files are grouped separately below. `.env` files are neither required nor read for this guide.
+Updated 2026-10-23. Start with [OPERATIONS.md](OPERATIONS.md) for candidate installation and [TESTING_GUIDE.md](TESTING_GUIDE.md) for detailed workflows. This inventory describes project-owned source, tests, configuration, documentation and assets; installed dependencies and generated build files are grouped separately below. `.env` files are neither required nor read.
+
+Latest production-hardening files: `internal/database/startup.go` and `startup_test.go` check startup integrity and preserve/test pre-upgrade snapshots; `sync_unix.go`/`sync_windows.go` handle platform durability; `release_test.go` verifies disabled native extension loading in tagged builds; `cmd/billbook/signals_*.go` defines shutdown signals; `frontend/build.mjs` explicitly disables environment-file loading; `scripts/release-linux.sh` verifies and packages a static Linux candidate; `docs/OPERATIONS.md` covers installation and recovery; and `docs/READINESS.md` defines the common release scope and remaining gates.
 
 ## How the pieces connect
 
