@@ -7,7 +7,7 @@ An original offline desktop business application built with Go, React, TypeScrip
 
 Working features include multiple businesses; products, parties and warehouses; GST and non-GST sales/purchases; partial returns; POS with held bills and split payments; commercial documents; partial purchase-order goods receipts and invoice matching; inventory; accounting and bank reconciliation; financial reports and CSV/XLSX/PDF exports; master imports; verified backup/restore and automatic backup retention; local users with business assignments; offline administrator recovery; rotating logs; alternate units; business logos/product images; and product-sales/HSN summaries. All business data comes from SQLite. No demo transactions are inserted.
 
-The full specification remains incomplete. See [implementation status](docs/IMPLEMENTATION_STATUS.md) for the remaining work and [test results](docs/TEST_REPORT.md) for verification limits.
+The full specification remains incomplete. See [application readiness](docs/READINESS.md) for the current completion assessment. See [implementation status](docs/IMPLEMENTATION_STATUS.md) for the remaining work and [test results](docs/TEST_REPORT.md) for verification limits.
 
 The latest source additionally includes financial-year/variant settings, recurring expenses, year closing, quantity cess, encrypted backup copies, independent dispatches, journal imports and offline restore assistance. Consolidated Linux verification is recorded in the status and test report above. Earlier consolidated verification used `release/ledgerleaf-linux`; the latest source uses the development artifact described above.
 

@@ -1,7 +1,7 @@
 import {navigate} from './navigation';
 import {test, expect, Page} from '../../frontend/node_modules/@playwright/test';
 import {spawn, ChildProcess} from 'node:child_process';
-import {mkdtemp, rm, writeFile} from 'node:fs/promises';
+import {mkdtemp, rm, writeFile, readFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {resolve, join} from 'node:path';
 
@@ -182,15 +182,17 @@ test('warehouse transfer, expense and financial report reconcile',async({page})=
  await post(page,'warehouses?business_id=1',{name:'Branch'});
  await post(page,'opening-stock?business_id=1',{product_id:1,warehouse_id:1,quantity:10000,value:60000,date:'2026-10-15',key:'browser-transfer-opening'});
  await navigate(page, 'Stock changes');
+ await page.getByRole('button',{name:'+ Post stock movement',exact:true}).click();
  await page.getByLabel('Stock product').selectOption({label:'Notebook · BOOK'});
  await page.getByLabel('Source warehouse',{exact:true}).selectOption({label:'Main warehouse'});
  await page.getByLabel('Destination warehouse',{exact:true}).selectOption({label:'Branch'});
  await page.getByLabel('Quantity',{exact:true}).fill('2');
  await page.getByLabel('Date',{exact:true}).fill('2026-10-16');
  await page.getByLabel('Reason',{exact:true}).fill('Branch replenishment');
- await page.getByRole('button',{name:'Post stock movement'}).click();
+ await page.getByRole('button',{name:'Post stock movement',exact:true}).click();
  await expect(page.getByRole('status')).toContainText('Stock movement posted');
  await navigate(page, 'Expenses');
+ await page.getByRole('button',{name:'+ Record expense',exact:true}).click();
  await page.getByLabel('Amount (₹)').fill('50');
  await page.getByLabel('Date',{exact:true}).fill('2026-10-16');
  await page.getByLabel('Description',{exact:true}).fill('Delivery expense');
@@ -678,6 +680,7 @@ test('journal import preview and year-close preview leave records unchanged unti
  page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'Post financial import'}).click();
  await expect(page.getByText('1 journals posted.',{exact:true})).toBeVisible();
  await navigate(page, 'Banks & periods');
+ await page.getByRole('button',{name:'Review year closing',exact:true}).click();
  await page.getByLabel('Financial year-end date').fill('2026-03-31');
  await page.getByRole('button',{name:'Preview year closing'}).click();
  await expect(page.getByRole('status')).toContainText('Loss to transfer: ₹ 25.00');
@@ -738,6 +741,7 @@ test('billing selectors page beyond fifty and preserve saved selections outside 
 test('stock and configuration pickers reach later products and retain price selection',async({page})=>{
  for(let i=1;i<=51;i++)await post(page,'products?business_id=1',{name:`Item ${String(i).padStart(3,'0')}`,sku:`ITEM-${i}`,kind:'PRODUCT',unit:'PCS',sale_price:100});
  await navigate(page, 'Stock changes');
+ await page.getByRole('button',{name:'+ Post stock movement',exact:true}).click();
  await page.getByLabel('Operation',{exact:true}).selectOption('ADD');
  await page.getByRole('button',{name:'Next stock product',exact:true}).click();
  await page.getByLabel('Stock product',{exact:true}).selectOption('51');
@@ -745,9 +749,12 @@ test('stock and configuration pickers reach later products and retain price sele
  await page.getByLabel('Quantity',{exact:true}).fill('3');
  await page.getByLabel('Total cost of added stock (₹)').fill('6');
  await page.getByLabel('Reason',{exact:true}).fill('Later catalog item');
- await page.getByRole('button',{name:'Post stock movement'}).click();
+ await page.getByRole('button',{name:'Post stock movement',exact:true}).click();
  await expect(page.getByRole('status')).toContainText('Stock movement posted');
+ await expect(page.getByRole('dialog')).toHaveCount(0);
+ await page.getByRole('button',{name:'+ Post stock movement',exact:true}).click();
  await expect(page.getByLabel('Stock product',{exact:true})).toHaveValue('');
+ await page.getByRole('button',{name:'Close Post stock movement',exact:true}).click();
  await navigate(page, 'Unit conversions');
  await page.getByRole('button',{name:'+ Add conversion',exact:true}).click();
  await page.getByRole('button',{name:'Next conversion product',exact:true}).click();
@@ -773,7 +780,7 @@ test('invoice file previews atomically and posts purchase and sale together',asy
  await seedProduct(page);
  await post(page,'parties?business_id=1',{name:'Import Supplier',kind:'SUPPLIER'});
  await post(page,'parties?business_id=1',{name:'Import Buyer',kind:'CUSTOMER'});
- await page.getByRole('button',{name:'Import',exact:false}).click();
+ await navigate(page,'Import & export');
  await page.getByLabel('Invoice import mode').selectOption('finalize');
  await page.getByLabel('Invoice import file').setInputFiles({name:'invoices.csv',mimeType:'text/csv',buffer:Buffer.from('reference,kind,date,due_date,party_id,warehouse_id,sku,quantity,price\nIMP-P,PURCHASE,2026-10-15,2026-10-15,1,1,BOOK,2000,6000\nIMP-S,SALE,2026-10-15,2026-10-15,2,1,BOOK,1000,10000\n')});
  await page.getByRole('button',{name:'Preview invoice import',exact:true}).click();
@@ -1076,6 +1083,7 @@ test('bank creation and statement matching use dialogs and preserve validation e
  await expect(create.getByLabel('Bank name',{exact:true})).toHaveValue('Duplicate bank');
  page.once('dialog',d=>d.accept());await create.getByRole('button',{name:'Close Add bank account',exact:true}).click();
  await navigate(page, 'Expenses');
+ await page.getByRole('button',{name:'+ Record expense',exact:true}).click();
  await page.getByLabel('Payment account',{exact:true}).selectOption('6100');
  await page.getByLabel('Amount (₹)',{exact:true}).fill('25');
  await page.getByLabel('Date',{exact:true}).fill('2026-10-16');
@@ -1108,4 +1116,69 @@ test('receipt and dispatch dialogs fit desktop and mobile layouts',async({page})
  expect(await page.getByRole('dialog',{name:'New dispatch challan',exact:true}).evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBeTruthy();
  await page.setViewportSize({width:1280,height:720});
  await page.screenshot({path:resolve('../release/verification-goods-dialogs/dispatch-desktop.png')});
+});
+
+
+test('daily invoice entry reviews real totals, finalizes once, exports PDF and PNG and records payment',async({page})=>{
+ await post(page,'parties?business_id=1',{name:'Everyday customer',kind:'CUSTOMER'});
+ await seedProduct(page);
+ await post(page,'opening-stock?business_id=1',{product_id:1,warehouse_id:1,quantity:5000,value:30000,date:'2026-10-15',key:'readiness-invoice-opening'});
+ await navigate(page,'Billing');
+ await page.getByRole('button',{name:'+ New bill',exact:true}).click();
+ let dialog=page.getByRole('dialog',{name:'New sales bill',exact:true});
+ await dialog.getByLabel('Customer',{exact:true}).selectOption('1');
+ await dialog.getByLabel('Document date',{exact:true}).fill('2026-10-15');
+ await dialog.getByLabel('Due date',{exact:true}).fill('2026-10-20');
+ await dialog.getByLabel('Add line item',{exact:true}).selectOption('1');
+ await expect(dialog.getByLabel('Notebook Quantity',{exact:true})).toBeFocused();
+ await dialog.getByLabel('Notebook Quantity',{exact:true}).fill('2');
+ await expect(dialog.locator('.bill-sticky-total')).toContainText('200.00');
+ await dialog.getByRole('button',{name:'Save & review',exact:true}).click();
+ dialog=page.getByRole('dialog',{name:'Review document',exact:true});
+ await expect(dialog.getByRole('heading',{name:'Total ₹ 200.00',exact:true})).toBeVisible();
+ const draft=await (await page.request.get(origin+'/api/documents?business_id=1&id=1')).json();
+ expect(draft.status).toBe('DRAFT');
+ const draftExport=await page.request.get(origin+'/api/document-pdf?business_id=1&id=1&format=image-data');expect(draftExport.status()).toBe(400);
+ page.once('dialog',event=>event.dismiss());
+ await dialog.getByRole('button',{name:'Finalize',exact:true}).click();
+ expect((await (await page.request.get(origin+'/api/documents?business_id=1&id=1')).json()).status).toBe('DRAFT');
+ page.once('dialog',event=>event.accept());
+ await dialog.getByRole('button',{name:'Finalize',exact:true}).click();
+ dialog=page.getByRole('dialog');
+ const pdf=await page.request.get(origin+await dialog.getByRole('link',{name:'Download PDF',exact:true}).getAttribute('href'));
+ expect(pdf.headers()['content-type']).toBe('application/pdf');expect((await pdf.body()).subarray(0,5).toString()).toBe('%PDF-');
+ const modelResponse=await page.request.get(origin+'/api/document-pdf?business_id=1&id=1&format=image-data');expect(modelResponse.status()).toBe(200);
+ const model=await modelResponse.json();expect(model.Total).toBe('200.00');expect(model.Lines[0].Quantity).toBe('2.000 PCS');
+ const download=page.waitForEvent('download');await dialog.getByRole('button',{name:'Export image (PNG)',exact:true}).click();
+ const image=await download;expect(image.suggestedFilename()).toMatch(/\.png$/);
+ const imagePath=resolve('../release/readiness-invoice.png');await image.saveAs(imagePath);
+ const bytes=await readFile(imagePath);expect(bytes.subarray(0,8).toString('hex')).toBe('89504e470d0a1a0a');expect(bytes.readUInt32BE(16)).toBe(1200);
+ await dialog.getByRole('button',{name:'Close',exact:true}).click();
+ await page.getByRole('button',{name:'Payment',exact:true}).click();
+ await page.getByLabel('Amount (₹)',{exact:true}).fill('100');await page.getByLabel('Date',{exact:true}).fill('2026-10-15');
+ await page.getByRole('button',{name:'Record payment',exact:true}).click();
+ await expect(page.getByRole('cell',{name:'PARTIALLY PAID',exact:true})).toBeVisible();
+ const stock=await (await page.request.get(origin+'/api/stock?business_id=1')).json();expect(stock[0].quantity).toBe(3000);
+ await post(page,'businesses',{name:'Isolated business',state_code:'27'},201);
+ const isolated=await page.request.get(origin+'/api/document-pdf?business_id=2&id=1&format=image-data');expect(isolated.status()).toBe(400);
+});
+
+test('purchase-order entry issues a real saved order and exports PDF and PNG without receiving stock',async({page})=>{
+ await post(page,'parties?business_id=1',{name:'Everyday supplier',kind:'SUPPLIER'});await seedProduct(page);
+ await navigate(page,'Commercial documents');
+ await page.getByRole('button',{name:'+ Purchase order',exact:true}).click();
+ let dialog=page.getByRole('dialog',{name:'Purchase order',exact:true});
+ await dialog.getByLabel('Supplier',{exact:true}).selectOption('1');
+ await dialog.getByLabel('Add line item',{exact:true}).selectOption('1');
+ await dialog.getByLabel('Notebook Quantity',{exact:true}).fill('3');await dialog.getByLabel('Notebook Unit price',{exact:true}).fill('50');
+ await dialog.getByRole('button',{name:'Save & review',exact:true}).click();dialog=page.getByRole('dialog',{name:'Review document',exact:true});
+ await expect(dialog.getByRole('heading',{name:'Total ₹ 150.00',exact:true})).toBeVisible();
+ page.once('dialog',event=>event.accept());await dialog.getByRole('button',{name:'Issue',exact:true}).click();dialog=page.getByRole('dialog');
+ const pdf=await page.request.get(origin+await dialog.getByRole('link',{name:'Download PDF',exact:true}).getAttribute('href'));expect(pdf.status()).toBe(200);expect((await pdf.body()).subarray(0,5).toString()).toBe('%PDF-');
+ const model=await (await page.request.get(origin+'/api/commercial-pdf?business_id=1&id=1&format=image-data')).json();expect(model.Total).toBe('150.00');expect(model.Title).toContain('PURCHASE_ORDER');
+ const download=page.waitForEvent('download');await dialog.getByRole('button',{name:'Export image (PNG)',exact:true}).click();const image=await download;expect(image.suggestedFilename()).toMatch(/\.png$/);
+ await image.saveAs(resolve('../release/readiness-purchase-order.png'));
+ const stock=await (await page.request.get(origin+'/api/stock?business_id=1')).json();expect(stock).toHaveLength(1);expect(stock[0].quantity).toBe(0);expect(stock[0].value).toBe(0);
+ const movements=await (await page.request.get(origin+'/api/movements?business_id=1')).json();expect(movements).toHaveLength(0);
+ const journals=await (await page.request.get(origin+'/api/journals?business_id=1')).json();expect(journals).toHaveLength(0);
 });

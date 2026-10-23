@@ -286,3 +286,20 @@ No database, application server or external service was accessed, and no `.env` 
 - Go vet and offline Linux development build pass with Go 1.27.3. Full E2E discovery succeeds for 42 tests; database-backed tests were not run. The development executable was rebuilt, not launched. `git diff --check` passes.
 
 No `.env` file was read and no database, application server or external service was accessed. Live endpoint integration, Windows/browser/font coverage and physical printers remain unverified. PNG export is currently for business documents; report export formats remain CSV/XLSX/PDF.
+
+## 2026-10-23 — Application-only database permission and consolidated readiness run
+
+The user authorized database access for this application. All checks used fresh disposable application SQLite databases; browser checks started loopback-only application instances with `--no-browser` and blocked external browser requests. Existing business records were not opened or modified. No `.env` file was read. Database access was limited to disposable databases belonging to this application.
+
+Executed verification:
+
+- `GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOCACHE=/tmp/ledgerleaf-review-go-cache /snap/go/current/bin/go test -race -count=1 ./...` — the full **standard-build** Go suite passes. This includes accounting, backup, migrations/database, recovery and server tests. SQLCipher-only cases require the encrypted build and remain outside this run. The server package completed in 175.079 seconds.
+- Initial browser run against `release/ledgerleaf-linux-dev`: **36 passed, 8 failed** in 5.4 minutes. Failures involved ambiguous stock-submit selectors, post-reload menu readiness, a legacy partial Import navigation selector, and a new assertion expecting an empty stock list rather than a product with zero stock. These were test failures; no application implementation changes were needed.
+- Updated test steps to open the expense/stock/year-close dialogs, use exact submit selectors, and wait for navigation to exist before expanding its group. Updated the standalone workflow to honor `LEDGERLEAF_TEST_BINARY` and configured supported Chrome headless startup. A focused backup/navigation rerun passed.
+- Final complete browser run: **44 passed in 1.9 minutes**, using `LEDGERLEAF_TEST_BINARY=/home/aagam-linux/Desktop/Projects/MyBillBook/release/ledgerleaf-linux-dev`, one worker, and the existing application fixtures. This is a full final rerun, rather than an aggregate of partial passes.
+- New real daily-invoice test verifies saved-draft totals, cancelled and confirmed finalization, draft export rejection, PDF bytes, actual PNG file bytes/dimensions, partial payment, remaining stock and cross-business export rejection. New purchase-order test verifies saved totals, issue, real PDF/PNG downloads, zero stock movements and zero financial journals.
+- `git diff --check` passes. The application implementation and embedded bundle were unchanged in this readiness pass; no release build was claimed or produced.
+
+Local ignored evidence: `release/readiness-browser.log` (initial run), `release/readiness-focused.log`, `release/readiness-browser-final.log`, `release/readiness-final-results/`, `release/readiness-invoice.png` and `release/readiness-purchase-order.png`.
+
+Conclusion: the implemented Linux workflows now have database-backed regression evidence, but the application is **not complete or production-ready**. Dedicated customer sales orders, specialized tax/advance handling, further correction/recovery work and full localization remain incomplete. Pinned release rebuilding, Windows runtime/encryption packaging, clean-machine/offline installation, accessibility/security/compliance reviews, migration interruption and hardware checks remain pending. See READINESS.md.

@@ -1,19 +1,19 @@
 # Implementation status
 
-Updated 2026-10-22. **Incomplete development build; not production-ready.** This is a working, tested subset of the supplied specification. The full application has not been completed.
+Updated 2026-10-23. **Incomplete development build; not production-ready.** This is a working, tested subset of the supplied specification. The full application has not been completed.
 
-## Current remaining work — 2026-10-22
+## Current remaining work — 2026-10-23
 
 This summary supersedes older continuation notes below; dated sections retain implementation history.
 
-- **Latest verified batch:** goods and dispatch dialogs are implemented, including quantity selection, history, corrections and consolidation. The broad 41-workflow run plus affected reruns is recorded below; the latest four dispatch/login/layout checks passed. Startup now waits for authentication before rendering workspace controls. Broader release verification remains pending.
-- **Current runnable build:** `release/ledgerleaf-linux-dev` contains the 2026-10-22 changes. It was refreshed offline with Go 1.27.3 in the latest continuation; that executable was compiled but not launched. Earlier runtime verification used Go 1.27.2. The standard/encrypted release binaries are older; rebuilding with pinned Go 1.20.14 and SQLCipher remains pending because those temporary toolchains are unavailable.
-- **Implementation gaps:** specialized GST/place-of-supply/valuation and advance-tax handling; additional accounting correction workflows; automatic startup repair; browser compatibility assistance.
+- **Latest verified batch — 2026-10-23:** the full standard Go suite passes with race detection, and the final complete browser run passes all 44 workflows against fresh disposable SQLite databases. Coverage includes daily invoice review/finalization, real PDF/PNG exports, payment/stock checks and purchase-order issuance. Test harness corrections and initial/final run boundaries are recorded in TEST_REPORT.md. This does not complete the feature scope or final release QA.
+- **Current runnable build:** `release/ledgerleaf-linux-dev` contains the latest daily-entry and PDF/PNG changes, built with Go 1.27.3 and exercised with disposable SQLite databases on Linux. Standard/encrypted release binaries are older; pinned Go 1.20.14 and SQLCipher release rebuilding remains pending.
+- **Implementation gaps:** dedicated customer sales orders (purchase orders/quotations exist); specialized GST/place-of-supply/valuation and advance-tax handling; additional accounting correction workflows; automatic startup repair; browser compatibility assistance.
 - **Usability/localization:** receipt/dispatch creation, receipt matching/correction, dispatch allocation/history and consolidation now use dialogs. Ordinary expense/stock operations and period/year-close controls now use dialogs (see the latest continuation below). Other specialist screens still need a consistency review. Full interface translation, advanced messages and PDF complex-script support are incomplete. New user-management dialogs and searchable business assignments are implemented; they are no longer pending features.
 - **Final-stage verification (deferred by request):** Windows runtime and encryption packaging, physical printers, complete accessibility/security/compliance reviews, clean-machine/offline installation, 2 GB hardware benchmarks, migration interruption/power-loss checks, and support/release readiness.
 - **Scope boundaries:** GSTR-1/GSTR-3B exports prepare data rather than file portal-ready returns. The all-table Excel workbook is an unencrypted inspection export, not a restorable SQLite backup. Each restricted account supports up to 200 assigned businesses, selected from the entire directory.
 
-Use TEST_REPORT.md for exact verification results and TESTING_GUIDE.md for startup and manual workflows. The application remains an incomplete Linux trial build, not a completed production release.
+See [application readiness](READINESS.md) for the completion assessment. Use TEST_REPORT.md for exact verification results and TESTING_GUIDE.md for startup and manual workflows. The application remains an incomplete Linux trial build, not a completed production release.
 
 ## Implemented and connected to SQLite
 
@@ -249,3 +249,9 @@ Dispatch invoicing, uninvoiced returns, history and multi-dispatch consolidation
 - Existing scoped PDF handlers accept `format=image-data` to return their prepared print model after the usual saved-document/status/logo queries. PNG rendering consumes this model rather than editable form data or a screenshot. No new endpoint, dependency or schema migration is required. PDF requests keep their existing behavior; dispatch PDFs now explicitly set an attachment filename.
 - Browser canvas creates white 1200 × 1697 PNG pages with wrapped text, totals, tax/adjustment text, saved notes/logo and page numbers. Ordinary items stay together when possible. A single PNG downloads directly; longer exports provide one download link per page. PNG layout/fonts differ from PDF; PDF remains preferred.
 - New common labels have Hindi/Gujarati translations. Unit checks, real offline PNG-download coverage, pure response/PDF tests and build/vet results are recorded in TEST_REPORT.md. Live database-backed export workflows, Windows runtime/font checks and physical printers remain unverified in this batch.
+
+## 2026-10-23 — Database-backed readiness verification
+
+The user authorized application-only database access. The standard Go suite passed with race detection. The initial 44-workflow browser run had 36 passes and 8 failures in selectors, post-reload navigation timing and a new zero-stock assertion. After correcting those tests, the final complete run passed all 44 workflows. The standalone browser workflow now honors the development-binary override; Chrome's supported headless mode is explicit. No application implementation code was changed in this readiness pass.
+
+Two new workflows exercise the real SQLite-backed daily invoice and purchase-order entry flows, including saved totals, finalization/issue, actual PDF/PNG download, payments, stock effects and export isolation. Existing business records were not touched; no `.env` file or unrelated service was accessed. See READINESS.md for the remaining feature/release gaps.

@@ -331,3 +331,7 @@ Tests with `fixture`, `setupTrading`, or `gstTrading` helpers create disposable 
 ## PDF and PNG document exports
 
 `frontend/src/document_downloads.tsx` keeps PDF primary and manages PNG generation/download links. `frontend/src/invoice_image.ts` renders/paginates the saved print model into browser canvas PNGs; `frontend/tests/invoice_image.test.mjs` checks wrapping. `internal/server/document_export.go` serves the prepared model for `format=image-data` from existing document handlers; its pure recorder test opens no database/listener. The offline browser harness verifies actual PNG files, multi-page completeness, frozen content and export-error recovery.
+
+## Completion assessment
+
+`docs/READINESS.md` distinguishes implemented workflows, confirmed database-backed tests, remaining feature gaps and release gates. The 2026-10-23 consolidated verification is recorded in TEST_REPORT.md; generated run logs/screenshots remain ignored under release/.
