@@ -6,6 +6,7 @@ release/*
 *.db-wal
 *.db-shm
 .env*
+/manual-test-data/
 
 # Local credentials, private keys and alternate database files
 .aws/

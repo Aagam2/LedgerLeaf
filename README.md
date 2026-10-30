@@ -1,89 +1,168 @@
 # LedgerLeaf
 
-> Current release scope (2026-10-23): simple everyday invoices, purchase orders, payments, stock, reports, backups and PDF-first/PNG exports. Linux production hardening includes startup integrity checks, safety snapshots before upgrades, graceful shutdown and verified packaging. See [readiness and release gates](docs/READINESS.md), [the operator guide](docs/OPERATIONS.md) and [build instructions](docs/building.md).
+LedgerLeaf is an offline desktop billing, inventory and accounting application built with Go, React, TypeScript and SQLite. A single executable serves the interface in your browser and stores records locally; no separate database server is required.
 
-Latest verified Linux package: `release/Ledgerleaf-0.1.0-rc.3-linux-amd64.tar.gz` (application revision `d431c3c`). Extract it, verify `SHA256SUMS`, then run `./ledgerleaf`. Locally, `release/ledgerleaf-linux` and `release/ledgerleaf-linux-dev` contain that same executable. All 44 browser workflows, 12 frontend tests, the full Go race suite, vet and recovery smoke pass. This is a release candidate pending the remaining acceptance/security gates; it does not qualify the older Windows or SQLCipher artifacts.
+The daily workflow is **create a bill → save and review → finalize → download PDF or PNG → record payment**. Purchase orders, customers and suppliers, products, stock, expenses, reports, local users, and backup/restore are also supported. PDF is the primary document export; long PNG exports provide one image per page.
 
+**Status:** Linux release candidate. Automated Linux verification covers 44 browser workflows, 12 frontend tests, Go race tests and recovery checks. Independent security review and target-machine acceptance remain outstanding; Windows runtime compatibility is unverified. See [readiness](docs/READINESS.md) and [test results](docs/TEST_REPORT.md) for scope and limitations.
 
-An original offline desktop business application built with Go, React, TypeScript, Tailwind and embedded SQLite. The current target is a Linux release candidate for common daily work. Specialized features in the original specification are deferred; production acceptance gates are recorded explicitly.
+## Prerequisites
 
-Working features include multiple businesses; products, parties and warehouses; GST and non-GST sales/purchases; partial returns; POS with held bills and split payments; commercial documents; partial purchase-order goods receipts and invoice matching; inventory; accounting and bank reconciliation; financial reports and CSV/XLSX/PDF exports; master imports; verified backup/restore and automatic backup retention; local users with business assignments; offline administrator recovery; rotating logs; alternate units; business logos/product images; and product-sales/HSN summaries. All business data comes from SQLite. No demo transactions are inserted.
+For building from source on Linux:
 
-The full specification remains incomplete. See [application readiness](docs/READINESS.md) for the current completion assessment. See [implementation status](docs/IMPLEMENTATION_STATUS.md) for the remaining work and [test results](docs/TEST_REPORT.md) for verification limits.
+| Tool | Purpose |
+| --- | --- |
+| Git | Clone the repository. |
+| Go 1.27.3 | Toolchain used for the verified Linux candidate; the release script checks this exact version. |
+| Node.js 22 and npm | Install and build the frontend; Node 22 was used for verification. |
+| GCC and a C development toolchain | Required by the SQLite driver through CGO. |
+| A current Chrome or Chromium browser | Use the application; also required for browser tests. |
+| Python 3 | Required for lifecycle/recovery smoke tests, not for running the application. |
 
-The latest source additionally includes financial-year/variant settings, recurring expenses, year closing, quantity cess, encrypted backup copies, independent dispatches, journal imports and offline restore assistance. Consolidated Linux verification is recorded in the status and test report above. Earlier consolidated verification used `release/ledgerleaf-linux`; the latest source uses the development artifact described above.
+On Debian/Ubuntu, the native build tools can be installed with:
 
-For the latest Linux trial, use the development executable:
+```sh
+sudo apt update
+sudo apt install git build-essential python3
+```
+
+Install Go, Node.js/npm and a browser separately using the appropriate instructions for your operating system. Verify the build tools are on your `PATH`:
+
+```sh
+git --version
+go version
+node --version
+npm --version
+gcc --version
+```
+
+Downloading source dependencies requires an internet connection initially. The built application runs offline and needs only its executable, writable local storage and a compatible browser. Go, Node.js, npm and Python are not runtime dependencies.
+
+## Set up and build
+
+Run these commands from any directory where you keep projects:
+
+```sh
+git clone https://github.com/Aagam2/LedgerLeaf.git
+cd LedgerLeaf
+
+# Install the pinned frontend and Go dependencies.
+npm ci --prefix frontend
+go mod download
+
+# Build the frontend, then embed it in the Go executable.
+npm run build --prefix frontend
+mkdir -p release
+CGO_ENABLED=1 go build -buildvcs=false -o release/ledgerleaf-linux-dev ./cmd/billbook
+```
+
+Generated executables and release archives are not committed to the repository, so a fresh clone needs the build step. Frontend assets are embedded in the executable: after changing the UI, rebuild both the frontend and the Go executable.
+
+No `.env` file, API key, cloud account or external database is needed. Frontend builds explicitly disable automatic `.env` loading. SQLite is created and migrated automatically on first startup.
+
+## Start the application
+
+From the repository root after building:
 
 ```sh
 ./release/ledgerleaf-linux-dev --data-dir ./manual-test-data
 ```
 
-It opens your browser and keeps test records in a separate installation. No build tools or internet connection are needed to run it. Keep its terminal open while using the application. The standard Linux alias now matches RC3; encrypted Linux and Windows artifacts predate the latest changes and remain separately unqualified. Build-from-source instructions are in [building.md](docs/building.md).
+This opens your browser and keeps the trial installation in `manual-test-data/`. That directory is ignored by Git. Relative data paths are resolved from the directory where you run the command; always use the same location when reopening an installation.
 
-## Start testing
-
-Read [Run and test Ledgerleaf yourself](docs/TESTING_GUIDE.md) for exact startup commands, a first transaction walkthrough, test expectations, backup/encryption checks and troubleshooting. [Project file map](docs/FILE_MAP.md) explains each project-owned file and generated artifact group.
-
-Latest additions include atomic sales/purchase file imports, multi-dispatch invoice drafts, GSTR-1/GSTR-3B preparation exports and an optional SQLCipher Linux build. The current trial launch command is:
-
-```bash
-cd /home/aagam-linux/Desktop/Projects/MyBillBook
-./release/ledgerleaf-linux-dev --data-dir ./manual-test-data
-```
-
-## Run
-
-Windows artifacts are generated in `release/BillBook-Windows-x86.exe` and `release/BillBook-Windows-x64.exe`. Double-click the appropriate executable. It opens a compatible installed browser. No development runtime is needed. These binaries have been cross-compiled, **not runtime-tested on Windows**.
-
-Chromium 109 or newer is the browser target; Internet Explorer is unsupported. Windows 7 requires an already-installed compatible browser. See [compatibility](docs/compatibility.md).
-
-The console remains open. Use **Exit application** or Ctrl+C to stop the backend; closing a browser tab does not stop it. If automatic browser launching fails, open the launch URL printed in the console. Treat that URL as a local access credential.
-
-Default Windows data directory: `%APPDATA%/BillBook`. Portable mode:
-
-```powershell
-.\BillBook-Windows-x64.exe --data-dir D:\LedgerleafData
-```
-
-Development host:
+To use the default per-user data directory instead:
 
 ```sh
-./release/ledgerleaf-linux --no-browser --data-dir /tmp/my-ledgerleaf-test
+./release/ledgerleaf-linux-dev
 ```
 
-## Build and verification
+The default is the operating system's user configuration directory under `BillBook` (typically `~/.config/BillBook` on Linux, or under `XDG_CONFIG_HOME` when set). For portable storage, pass `--data-dir` with a directory you own on a local disk. Avoid shared network folders and live cloud-sync folders for the working database.
 
-Linux candidate packaging uses Go **1.27.3**, Node/npm, GCC and Chrome for browser tests. Legacy Windows builds use Go **1.20.14** and MinGW-w64 x86/x64. Dependencies are pinned and must be installed beforehand; candidate packaging downloads nothing and the resulting application needs no internet connection.
+Useful options:
 
 ```sh
-GO_BIN=/path/to/go1.20.14/bin/go GOCACHE=/tmp/billbook-go-cache ./scripts/build-windows.sh
+# Print the launch link without opening a browser automatically.
+./release/ledgerleaf-linux-dev --no-browser --data-dir ./manual-test-data
+
+# Show build information without opening a database.
+./release/ledgerleaf-linux-dev --version
 ```
 
-The Linux script builds the UI, tests Go and frontend code, runs a browser workflow, compiles both Windows binaries, inspects their imports, and generates hashes and a manifest. See [building](docs/building.md) and [usage](docs/usage.md).
+Keep the terminal open while using LedgerLeaf. Use **Exit application** or Ctrl+C to stop it; closing a browser tab leaves the backend running. If the browser does not open, copy the launch link printed in the terminal into your browser. Treat that link as a local access credential. Only one process can use a given data directory at a time.
 
-Documentation: [architecture](docs/architecture.md), [database](docs/database.md), [accounting](docs/accounting.md), [GST](docs/gst.md).
+### First-use setup
 
-## Application tests
+1. Create your business and check its address, tax scheme and invoice details.
+2. Create an administrator in **Users & permissions**, then sign in. Until a user is created, the local launch link grants owner access.
+3. Add customers, suppliers and products. Enter opening stock before selling stocked products.
+4. Enable automatic backups in **Backup & restore**; scheduling is opt-in. Keep a verified backup outside the computer as well.
+5. Create a trial bill, use **Save & review**, confirm the amount and finalize it. Check **Download PDF**, optionally **Export image (PNG)**, then record a payment.
 
-See [test results and verification limits](docs/TEST_REPORT.md). Run the complete Linux verification suite with installed dependencies:
+Records are created from your input; no demo transactions are inserted. See [the testing guide](docs/TESTING_GUIDE.md) for detailed walkthroughs.
+
+## Run tests
+
+From the repository root, after installing dependencies and building the application:
 
 ```sh
-GO_BIN=/snap/go/current/bin/go GOCACHE=/tmp/ledgerleaf-review-go-cache ./scripts/test-application.sh
+# Frontend unit tests.
+npm test --prefix frontend
+
+# Backend tests and static checks.
+go test -race -count=1 ./...
+go vet ./...
+
+# Browser workflows against the executable built above.
+LEDGERLEAF_TEST_BINARY="$PWD/release/ledgerleaf-linux-dev" npm run test:e2e --prefix frontend
+
+# Compiled application lifecycle, financial integrity and recovery checks.
+LEDGERLEAF_TEST_BINARY="$PWD/release/ledgerleaf-linux-dev" python3 scripts/smoke.py
 ```
 
-Tests use disposable SQLite databases, exercise the real executable and browser, and check financial rollback, concurrent writes, PDF content and crash/restart persistence.
+Browser tests default to `/usr/bin/google-chrome`. Set `CHROME_PATH` to your installed Chrome/Chromium executable if needed, for example:
 
-The application includes offline **Help** with workflow guides in English, Hindi and Gujarati. Choose **Language / भाषा / ભાષા** in the sidebar or login screen; English is the default. Navigation and common labels are localized, with English fallback for remaining messages. [Localization scope](docs/LOCALIZATION.md).
+```sh
+CHROME_PATH=/usr/bin/chromium LEDGERLEAF_TEST_BINARY="$PWD/release/ledgerleaf-linux-dev" npm run test:e2e --prefix frontend
+```
 
-Administrators can download an all-business, all-table Excel workbook from **Backup & restore**. The workbook is an unencrypted inspection export; use SQLite backups for complete restores. **Import & export** provides blank product/customer/supplier Excel templates and validated invoice/journal imports. See [the testing guide](docs/TESTING_GUIDE.md#entire-database-workbook-and-excel-import-templates) for formats and units.
+The complete Linux verification script builds the frontend and `release/ledgerleaf-linux`, runs unit/race/browser tests and recovery smoke, and writes coverage results under `release/`:
 
-## Source control
+```sh
+./scripts/test-application.sh
+```
 
-The local repository uses `main`. Initial commit `7aa7c24` captures the existing source, documentation, tests, migrations and embedded web assets before further changes. Local executables, release artifacts, installed dependencies, Python caches, database files and `.env` files are excluded.
+Set `GO_BIN` if your Go executable is not named `go` on `PATH`, and `CHROME_PATH` if necessary. Tests use disposable application databases and local loopback servers; the environment must allow browser subprocesses and local socket binding.
 
-Simplicity and familiar billing/accounting workflows are core product requirements. See [interface principles](docs/UX_PRINCIPLES.md) for the conventions guiding future features.
+## Release packages and Windows
 
-Daily entry supports **Save & review → Edit draft or Finalize/Issue → Download/print PDF** in the same document dialog. **Orders & quotations** includes direct purchase-order entry. Running item amounts use entered prices; review uses the saved backend calculation. See [the daily-entry walkthrough](docs/TESTING_GUIDE.md#daily-invoice-and-order-entry).
+To create a verified Linux candidate, first install dependencies and commit the source and rebuilt embedded assets, then run:
 
-**Download PDF** is the primary document export. **Export image (PNG)** is available alongside it for finalized invoices, issued orders/quotations, credit notes, dispatch challans and POS A4 invoices. Long documents provide a separate PNG download for each page.
+```sh
+VERSION=0.1.0-rc.4 ./scripts/release-linux.sh
+```
+
+Use an unused version name. Packaging additionally requires GNU `tar`, `sha256sum`, `readelf` (binutils), and static C libraries. The script checks Go 1.27.3, uses installed dependencies without downloading, reruns verification and writes a static executable, operator guide, manifest, checksums and logs into an archive under `release/`. It requires a clean Git working tree. Passing automation creates a candidate; it does not waive the remaining production acceptance gates.
+
+If you received a packaged Linux build separately, extract its archive, run `sha256sum -c SHA256SUMS` inside the extracted folder, then start `./ledgerleaf`. No source checkout or build tools are needed for that executable.
+
+Windows build scripts are available but use a separate legacy compatibility toolchain: Go 1.20.14 and MinGW-w64 x86/x64 compilers. They generate `release/BillBook-Windows-x86.exe` and `release/BillBook-Windows-x64.exe`. Windows binaries have been cross-compiled, not runtime-qualified. See [building](docs/building.md) and [compatibility](docs/compatibility.md) before attempting a Windows build. SQLCipher working-database builds are also separate from the standard build above.
+
+## Backups and local data
+
+The standard working database and local snapshots are plaintext. Password-encrypted backup downloads are available; they do not encrypt the working database. Backups contain all businesses and users in the installation. Use SQLite backups for complete restores; CSV/XLSX exports are for reporting and inspection.
+
+Before upgrades or recovery, stop the application and preserve the complete data directory, including any WAL/SHM files. See [the operator guide](docs/OPERATIONS.md) for verified backup, restore, administrator recovery and upgrade procedures.
+
+Environment files, private keys, local trial data, database files, generated executables and installed dependencies are excluded from Git. Do not commit real business data, logs, backup files or access credentials.
+
+## Documentation
+
+- [Operator guide](docs/OPERATIONS.md): installation, first use, backups, upgrades and recovery.
+- [Build instructions](docs/building.md): detailed Linux, legacy Windows and encryption builds.
+- [Testing guide](docs/TESTING_GUIDE.md) and [test report](docs/TEST_REPORT.md): walkthroughs, executed checks and limits.
+- [Readiness](docs/READINESS.md) and [implementation status](docs/IMPLEMENTATION_STATUS.md): current scope and outstanding work.
+- [Architecture](docs/architecture.md), [database](docs/database.md) and [accounting](docs/accounting.md): technical design.
+- [GST scope](docs/gst.md): configured tax behavior and preparation-export limitations.
+- [Interface principles](docs/UX_PRINCIPLES.md), [localization](docs/LOCALIZATION.md) and [file map](docs/FILE_MAP.md).
+
+Offline **Help** is available in the application in English, Hindi and Gujarati, with English fallback for untranslated messages.
