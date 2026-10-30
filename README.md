@@ -1,4 +1,4 @@
-# Ledgerleaf
+# LedgerLeaf
 
 > Current release scope (2026-10-23): simple everyday invoices, purchase orders, payments, stock, reports, backups and PDF-first/PNG exports. Linux production hardening includes startup integrity checks, safety snapshots before upgrades, graceful shutdown and verified packaging. See [readiness and release gates](docs/READINESS.md), [the operator guide](docs/OPERATIONS.md) and [build instructions](docs/building.md).
 

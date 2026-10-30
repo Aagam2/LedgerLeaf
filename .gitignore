@@ -7,6 +7,23 @@ release/*
 *.db-shm
 .env*
 
+# Local credentials, private keys and alternate database files
+.aws/
+.ssh/
+.npmrc
+.netrc
+.git-credentials
+*.pem
+*.key
+*.p12
+*.pfx
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3-wal
+*.sqlite3-shm
+
 # Local executables, interpreter caches, and browser-test output
 /ledgerleaf
 __pycache__/
